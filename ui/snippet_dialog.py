@@ -423,6 +423,22 @@ class SnippetDialog(QDialog):
                 widget.setStyleSheet(inline)
             except Exception:
                 logging.exception("SnippetDialog: failed to set inline focus style on %s", getattr(widget, 'objectName', lambda: '')())
+            # Additionally apply a subtle drop shadow for robustness across platforms
+            try:
+                # Subtle shadow: smaller blur, no vertical offset, semi-transparent color
+                shadow = QGraphicsDropShadowEffect(widget)
+                shadow.setBlurRadius(8)
+                shadow.setXOffset(0)
+                shadow.setYOffset(0)
+                try:
+                    qcol = QColor(fq['border_focus'])
+                    qcol.setAlpha(140)
+                    shadow.setColor(qcol)
+                except Exception:
+                    shadow.setColor(QColor(fq['border_focus']))
+                widget.setGraphicsEffect(shadow)
+            except Exception:
+                logging.exception("SnippetDialog: failed to apply drop shadow on %s", getattr(widget, 'objectName', lambda: '')())
         except Exception:
             logging.exception("SnippetDialog._apply_inline_focus_style error")
 
@@ -442,6 +458,16 @@ class SnippetDialog(QDialog):
                     del self._orig_inline_styles[key]
                 except Exception:
                     pass
+            # Remove any graphics effect we may have applied
+            try:
+                ge = widget.graphicsEffect()
+                if ge is not None:
+                    try:
+                        widget.setGraphicsEffect(None)
+                    except Exception:
+                        pass
+            except Exception:
+                logging.exception("SnippetDialog: failed to remove graphics effect on %s", getattr(widget, 'objectName', lambda: '')())
         except Exception:
             logging.exception("SnippetDialog._remove_inline_focus_style error")
     def _populate_fields(self):
