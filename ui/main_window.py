@@ -6,16 +6,19 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
     QTableWidgetItem, QLineEdit, QPushButton, QMessageBox, QStatusBar,
     QHeaderView, QAbstractItemView, QSplitter, QTextEdit, QLabel,
-    QFrame, QToolBar, QSizePolicy
+    QFrame, QToolBar, QSizePolicy, QApplication
 )
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont, QAction, QIcon
+from PyQt6.QtGui import QFont, QAction, QIcon, QColor
 from datetime import datetime
 from typing import Optional
 
 from core.snippet_manager import SnippetManager
+from ui.modern_dark_theme import ModernDarkTheme
 from ui.snippet_dialog import SnippetDialog
 from ui.backup_dialog import BackupDialog
+from ui.modern_dark_theme import ModernDarkTheme
+from ui.modern_widgets import TagBadgeWidget, ModernFrame, ModernSeparator
 from utils import copy_to_clipboard, execute_in_terminal_macos
 from db.models import Snippet
 
@@ -36,9 +39,22 @@ class MainWindow(QMainWindow):
         self.snippet_manager = snippet_manager
         self.current_snippets = []
 
+        # Apply modern dark theme
+        self._apply_theme()
+
         self._setup_ui()
         self._connect_signals()
         self.load_snippets()
+
+    def _apply_theme(self):
+        """Apply the modern dark theme to the application."""
+        # Set application stylesheet
+        QApplication.instance().setStyleSheet(ModernDarkTheme.get_application_stylesheet())
+
+        # Apply additional dialog styles
+        dialog_styles = ModernDarkTheme.get_dialog_styles()
+        current_stylesheet = QApplication.instance().styleSheet()
+        QApplication.instance().setStyleSheet(current_stylesheet + dialog_styles)
 
     def _setup_ui(self):
         """Set up the user interface."""
@@ -54,62 +70,117 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        # Main layout
+        # Main layout with optimized spacing
         main_layout = QVBoxLayout(central_widget)
+        main_layout.setSpacing(8)  # Reduced from 16
+        main_layout.setContentsMargins(12, 4, 12, 4)  # Reduced margins
 
         # Create toolbar
         self._create_toolbar()
 
-        # Search bar
+        # Search section - compact and streamlined
         search_layout = QHBoxLayout()
-        search_label = QLabel("Search:")
+        search_layout.setContentsMargins(0, 0, 0, 0)
+        search_layout.setSpacing(8)
+        
+        # Small search icon/label
+        search_label = QLabel("🔍")
+        search_label.setFixedSize(24, 24)
+        search_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        search_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_secondary']}; font-size: 16px;")
+        
+        # Compact search input
         self.search_edit = QLineEdit()
         self.search_edit.setPlaceholderText("Search snippets by name, description, command, or tags...")
+        self.search_edit.setFixedHeight(32)  # Reduced height
+        self.search_edit.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {ModernDarkTheme.COLORS['surface']};
+                border: 1px solid {ModernDarkTheme.COLORS['border']};
+                border-radius: 16px;
+                padding: 0 12px;
+                color: {ModernDarkTheme.COLORS['text_primary']};
+                font-size: 13px;
+            }}
+            QLineEdit:focus {{
+                border-color: {ModernDarkTheme.COLORS['border_focus']};
+                background-color: {ModernDarkTheme.COLORS['surface_elevated']};
+            }}
+        """)
+        
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_edit)
-        main_layout.addLayout(search_layout)
-
-        # Create splitter for table and preview
+        
+        main_layout.addLayout(search_layout)        # Create splitter for table and preview
         splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setHandleWidth(1)
 
         # Left side - snippet list
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
+        left_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Snippets table
+        # Snippets table with modern styling
         self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Name", "Description", "Tags", "Last Used"])
+        self.table.setColumnCount(5)  # Added column for status indicator
+        self.table.setHorizontalHeaderLabels(["", "Name", "Description", "Tags", "Last Used"])
 
-        # Configure table
+        # Configure table for better row selection
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
+        self.table.setShowGrid(False)
+        self.table.verticalHeader().setVisible(False)
+        
+        # Improve selection behavior and styling
+        self.table.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)  # Disable editing
+        self.table.setMouseTracking(True)  # Enable mouse tracking for better hover effects
 
-        # Set column widths
+        # Set column widths and behavior
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # Name
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Description
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)  # Tags
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # Last Used
-
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)  # Status indicator
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # Name
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Description - expandable
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # Tags
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Last Used
+        
+        # Set status column width and description minimum
+        self.table.setColumnWidth(0, 30)
+        self.table.setColumnWidth(2, 300)  # Minimum width for description
+        
+        # Enable word wrap for better text display
+        self.table.setWordWrap(True)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideNone)  # Don't elide text
+        
+        # Add table to layout
         left_layout.addWidget(self.table)
 
-        # Right side - command preview
-        right_widget = QWidget()
+        # Right side - command preview with modern styling
+        right_widget = ModernFrame()
         right_layout = QVBoxLayout(right_widget)
+        right_layout.setContentsMargins(16, 16, 16, 16)
 
-        # Preview header
-        preview_label = QLabel("Command Preview")
-        preview_label.setFont(QFont("", 12, QFont.Weight.Bold))
-        right_layout.addWidget(preview_label)
+        # Preview header with icon
+        preview_header = QHBoxLayout()
+        preview_label = QLabel("⚡ Command Preview")
+        preview_label.setFont(QFont("", 14, QFont.Weight.Bold))
+        preview_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
+        preview_header.addWidget(preview_label)
+        preview_header.addStretch()
+        right_layout.addLayout(preview_header)
+
+        # Separator
+        separator = ModernSeparator()
+        right_layout.addWidget(separator)
 
         # Command text display
         self.command_preview = QTextEdit()
         self.command_preview.setReadOnly(True)
-        self.command_preview.setFont(QFont("Courier", 10))
+        self.command_preview.setFont(QFont("SF Mono, Monaco, Cascadia Code, Roboto Mono", 12))
         self.command_preview.setPlaceholderText("Select a snippet to preview its command...")
+        self.command_preview.setMinimumHeight(200)
         right_layout.addWidget(self.command_preview)
 
         # Add widgets to splitter
@@ -119,23 +190,31 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(splitter)
 
-        # Button layout
+        # Button layout with compact styling
         button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(0, 4, 0, 0)  # Reduced top margin
+        button_layout.setSpacing(8)  # Reduced spacing
 
-        # Action buttons
-        self.new_button = QPushButton("New Snippet")
-        self.edit_button = QPushButton("Edit")
-        self.delete_button = QPushButton("Delete")
-        self.copy_button = QPushButton("Copy Command")
-        self.execute_button = QPushButton("Execute")
+        # Action buttons with modern styles
+        self.new_button = QPushButton("✨ New Snippet")
+        self.edit_button = QPushButton("✏️ Edit")
+        self.delete_button = QPushButton("🗑️ Delete")
+        self.copy_button = QPushButton("📋 Copy Command")
+        self.execute_button = QPushButton("▶️ Execute")
 
-        # Style buttons
-        self.new_button.setDefault(True)
-        self.copy_button.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; }")
-        self.execute_button.setStyleSheet("QPushButton { background-color: #2196F3; color: white; }")
-        self.delete_button.setStyleSheet("QPushButton { background-color: #f44336; color: white; }")
+        # Apply button styles
+        button_styles = ModernDarkTheme.get_button_styles()
+        self.new_button.setStyleSheet(button_styles['primary'])
+        self.edit_button.setStyleSheet(button_styles['secondary'])
+        self.delete_button.setStyleSheet(button_styles['danger'])
+        self.copy_button.setStyleSheet(button_styles['success'])
+        self.execute_button.setStyleSheet(button_styles['primary'])
 
-        # Initially disable buttons that require selection
+        # Set button heights - more compact
+        for button in [self.new_button, self.edit_button, self.delete_button, 
+                      self.copy_button, self.execute_button]:
+            button.setMinimumHeight(30)  # Reduced from 36
+            button.setFont(QFont("", 12, QFont.Weight.Medium))  # Slightly smaller font        # Initially disable buttons that require selection
         self.edit_button.setEnabled(False)
         self.delete_button.setEnabled(False)
         self.copy_button.setEnabled(False)
@@ -148,12 +227,23 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(self.copy_button)
         button_layout.addWidget(self.execute_button)
 
-        main_layout.addLayout(button_layout)
+        main_layout.addLayout(button_layout)  # Changed from addWidget(button_frame) to addLayout
 
         # Status bar
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.show_status_message("Ready")
+
+        # Apply final styling to status bar
+        self.status_bar.setStyleSheet(f"""
+            QStatusBar {{
+                background-color: {ModernDarkTheme.COLORS['surface']};
+                color: {ModernDarkTheme.COLORS['text_secondary']};
+                border-top: 1px solid {ModernDarkTheme.COLORS['border']};
+                padding: 6px 12px;
+                font-size: 12px;
+            }}
+        """)
 
     def _create_menu_bar(self):
         """Create the application menu bar."""
@@ -230,6 +320,15 @@ class MainWindow(QMainWindow):
         # Table selection changes
         self.table.itemSelectionChanged.connect(self._on_selection_changed)
         self.table.itemDoubleClicked.connect(self.on_edit_snippet)
+        
+        # Ensure proper row selection when clicking on any cell
+        self.table.itemClicked.connect(self._on_item_clicked)
+
+    def _on_item_clicked(self, item):
+        """Handle cell clicks to ensure entire row is selected."""
+        if item:
+            row = item.row()
+            self.table.selectRow(row)
 
     def _on_selection_changed(self):
         """Handle table selection changes."""
@@ -280,24 +379,63 @@ class MainWindow(QMainWindow):
             self.table.setRowCount(len(snippets))
 
             for row, snippet in enumerate(snippets):
-                # Name
+                # Set dynamic row height for multiline content
+                self.table.setRowHeight(row, 60)  # Increased for multiline text
+
+                # Status indicator (empty for now, could be used for favorite/recent status)
+                status_item = QTableWidgetItem("")
+                self.table.setItem(row, 0, status_item)
+
+                # Name with improved formatting
                 name_item = QTableWidgetItem(snippet.name)
                 name_item.setData(Qt.ItemDataRole.UserRole, snippet.id)  # Store ID
-                self.table.setItem(row, 0, name_item)
+                name_item.setFont(QFont("", 13, QFont.Weight.Medium))
+                self.table.setItem(row, 1, name_item)
 
-                # Description
-                description = snippet.description[:100] + "..." if len(snippet.description) > 100 else snippet.description
-                self.table.setItem(row, 1, QTableWidgetItem(description))
+                # Description - full text, multiline, no truncation
+                description_item = QTableWidgetItem(snippet.description)  # Full description
+                description_item.setFont(QFont("", 12))
+                description_item.setForeground(QColor(ModernDarkTheme.COLORS['text_secondary']))
+                # Enable text wrapping for this item
+                description_item.setTextAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+                self.table.setItem(row, 2, description_item)
+                
+                # Tags as modern badges
+                if snippet.tags and snippet.tags.strip():
+                    # Create a container widget for tag badges
+                    tag_widget = TagBadgeWidget()
+                    tag_widget.set_tags(snippet.tags)
+                    self.table.setCellWidget(row, 3, tag_widget)
+                else:
+                    # Empty cell for no tags
+                    tags_item = QTableWidgetItem("")
+                    self.table.setItem(row, 3, tags_item)
 
-                # Tags
-                self.table.setItem(row, 2, QTableWidgetItem(snippet.tags))
-
-                # Last Used
+                # Last Used with cleaner formatting
                 if snippet.last_used:
-                    last_used_str = snippet.last_used.strftime("%Y-%m-%d %H:%M")
+                    # More human-readable date format without extra spacing
+                    now = datetime.now()
+                    diff = now - snippet.last_used
+                    
+                    if diff.days == 0:
+                        if diff.seconds < 3600:  # Less than 1 hour
+                            last_used_str = f"{diff.seconds // 60}m ago"
+                        else:  # Less than 1 day
+                            last_used_str = f"{diff.seconds // 3600}h ago"
+                    elif diff.days == 1:
+                        last_used_str = "Yesterday"
+                    elif diff.days < 7:
+                        last_used_str = f"{diff.days}d ago"
+                    else:
+                        last_used_str = snippet.last_used.strftime("%b %d")
                 else:
                     last_used_str = "Never"
-                self.table.setItem(row, 3, QTableWidgetItem(last_used_str))
+                
+                last_used_item = QTableWidgetItem(last_used_str)
+                last_used_item.setFont(QFont("", 11))
+                last_used_item.setForeground(QColor(ModernDarkTheme.COLORS['text_muted']))
+                last_used_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)  # Center align
+                self.table.setItem(row, 4, last_used_item)
 
             # Update status
             count = len(snippets)
@@ -305,6 +443,9 @@ class MainWindow(QMainWindow):
                 self.show_status_message(f"Found {count} snippet(s) matching '{search_term}'")
             else:
                 self.show_status_message(f"Loaded {count} snippet(s)")
+
+            # Adjust row heights to fit content
+            self.table.resizeRowsToContents()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load snippets: {e}")
@@ -324,7 +465,7 @@ class MainWindow(QMainWindow):
         """
         current_row = self.table.currentRow()
         if current_row >= 0:
-            name_item = self.table.item(current_row, 0)
+            name_item = self.table.item(current_row, 1)  # Name is now in column 1
             if name_item:
                 return name_item.data(Qt.ItemDataRole.UserRole)
         return None
