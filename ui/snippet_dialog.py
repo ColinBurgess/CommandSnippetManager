@@ -7,7 +7,10 @@ from PyQt6.QtWidgets import (
     QTextEdit, QDialogButtonBox, QFormLayout, QMessageBox
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 from db.models import Snippet
+from ui.modern_dark_theme import ModernDarkTheme
+from ui.modern_widgets import ModernFrame
 from typing import Optional, Dict
 
 
@@ -35,53 +38,103 @@ class SnippetDialog(QDialog):
     def _setup_ui(self):
         """Set up the user interface elements."""
         # Set dialog properties
-        title = "Edit Snippet" if self.is_editing else "New Snippet"
+        title = "✨ Edit Snippet" if self.is_editing else "✨ New Snippet"
         self.setWindowTitle(title)
         self.setModal(True)
-        self.resize(600, 400)
+        self.resize(650, 500)
 
-        # Main layout
+        # Main layout with improved spacing
         layout = QVBoxLayout(self)
+        layout.setSpacing(20)
+        layout.setContentsMargins(24, 24, 24, 24)
+
+        # Header
+        header_label = QLabel(title)
+        header_label.setFont(QFont("", 18, QFont.Weight.Bold))
+        header_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']}; margin-bottom: 8px;")
+        layout.addWidget(header_label)
+
+        # Content frame
+        content_frame = ModernFrame()
+        content_layout = QVBoxLayout(content_frame)
+        content_layout.setSpacing(16)
+        content_layout.setContentsMargins(20, 20, 20, 20)
 
         # Form layout for input fields
         form_layout = QFormLayout()
+        form_layout.setVerticalSpacing(12)
+        form_layout.setHorizontalSpacing(12)
 
         # Name field
+        name_label = QLabel("Name *")
+        name_label.setFont(QFont("", 12, QFont.Weight.Medium))
+        name_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
+
         self.name_edit = QLineEdit()
         self.name_edit.setPlaceholderText("Enter a short, descriptive name...")
-        form_layout.addRow("Name *:", self.name_edit)
+        self.name_edit.setMinimumHeight(36)
+        form_layout.addRow(name_label, self.name_edit)
 
         # Description field
+        desc_label = QLabel("Description")
+        desc_label.setFont(QFont("", 12, QFont.Weight.Medium))
+        desc_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
+
         self.description_edit = QTextEdit()
         self.description_edit.setPlaceholderText("Enter a longer description of what this command does...")
-        self.description_edit.setMaximumHeight(80)
-        form_layout.addRow("Description:", self.description_edit)
+        self.description_edit.setMaximumHeight(100)
+        self.description_edit.setMinimumHeight(80)
+        form_layout.addRow(desc_label, self.description_edit)
 
         # Command text field
+        command_label = QLabel("Command *")
+        command_label.setFont(QFont("", 12, QFont.Weight.Medium))
+        command_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
+
         self.command_edit = QTextEdit()
         self.command_edit.setPlaceholderText("Enter the command to execute...")
-        self.command_edit.setMinimumHeight(120)
-        form_layout.addRow("Command *:", self.command_edit)
+        self.command_edit.setMinimumHeight(140)
+        self.command_edit.setFont(QFont("SF Mono, Monaco, Cascadia Code, Roboto Mono", 12))
+        form_layout.addRow(command_label, self.command_edit)
 
         # Tags field
+        tags_label = QLabel("Tags")
+        tags_label.setFont(QFont("", 12, QFont.Weight.Medium))
+        tags_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
+
         self.tags_edit = QLineEdit()
         self.tags_edit.setPlaceholderText("Enter comma-separated tags (e.g., aws, docker, ssh)...")
-        form_layout.addRow("Tags:", self.tags_edit)
+        self.tags_edit.setMinimumHeight(36)
+        form_layout.addRow(tags_label, self.tags_edit)
 
-        layout.addLayout(form_layout)
-
-        # Add some spacing
-        layout.addStretch()
+        content_layout.addLayout(form_layout)
+        layout.addWidget(content_frame)
 
         # Required fields note
         required_label = QLabel("* Required fields")
-        required_label.setStyleSheet("color: gray; font-style: italic;")
+        required_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_muted']}; font-style: italic; font-size: 11px;")
         layout.addWidget(required_label)
 
-        # Dialog buttons
+        # Dialog buttons with modern styling
         self.button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
         )
+
+        # Apply modern button styles
+        button_styles = ModernDarkTheme.get_button_styles()
+        save_button = self.button_box.button(QDialogButtonBox.StandardButton.Save)
+        cancel_button = self.button_box.button(QDialogButtonBox.StandardButton.Cancel)
+
+        if save_button:
+            save_button.setStyleSheet(button_styles['primary'])
+            save_button.setMinimumHeight(36)
+            save_button.setText("💾 Save")
+
+        if cancel_button:
+            cancel_button.setStyleSheet(button_styles['secondary'])
+            cancel_button.setMinimumHeight(36)
+            cancel_button.setText("❌ Cancel")
+
         layout.addWidget(self.button_box)
 
         # Set focus to name field

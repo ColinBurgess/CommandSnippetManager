@@ -127,8 +127,8 @@
     "run_tests": "pytest",
     "setup_environment": "./setup.sh",
     "quick_run": "./run.sh",
-    "CORRECT_EXECUTION_COMMAND": "cd /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app && /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/run.sh",
-    "APPLICATION_DIRECTORY": "/Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app",
-    "IMPORTANT_NOTE": "The application code is inside the my_snippet_app folder. Always use the full path command above to execute the application correctly."
+    "CORRECT_EXECUTION_COMMAND": "cd /Users/colin.moreno-burgess/github/Colin/CmdSnips && ./run.sh",
+    "APPLICATION_DIRECTORY": "/Users/colin.moreno-burgess/github/Colin/CmdSnips",
+    "IMPORTANT_NOTE": "All application files are now in the root CmdSnips directory. Use the command above to execute the application correctly. Make sure to run ./setup.sh first if dependencies are not installed."
   }
 }

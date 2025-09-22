@@ -11,9 +11,18 @@ if [ ! -d "venv" ]; then
     exit 1
 fi
 
-# Activate virtual environment
-source venv/bin/activate
+# Get the directory of this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Run the application
+# Use the virtual environment python directly
+VENV_PYTHON="$SCRIPT_DIR/venv/bin/python"
+
+# Check if the virtual environment python exists
+if [ ! -f "$VENV_PYTHON" ]; then
+    echo "❌ Virtual environment Python not found at $VENV_PYTHON"
+    exit 1
+fi
+
+# Run the application using virtual environment python directly
 echo "🚀 Starting Command Snippet Manager..."
-python main.py
+"$VENV_PYTHON" main.py
