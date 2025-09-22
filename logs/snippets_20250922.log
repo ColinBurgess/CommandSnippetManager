@@ -1,0 +1,33 @@
+2025-09-22 08:16:52,194 - __main__ - INFO - [main.py:25] - Starting Command Snippet Manager application
+2025-09-22 08:16:52,469 - __main__ - DEBUG - [main.py:30] - Application name set to: Command Snippet Manager
+2025-09-22 08:16:52,474 - __main__ - DEBUG - [main.py:34] - Application style set to Fusion
+2025-09-22 08:16:52,474 - __main__ - INFO - [main.py:38] - Initializing database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-09-22 08:16:52,474 - db.database - DEBUG - [database.py:37] - Attempting to connect to database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-09-22 08:16:52,475 - db.database - INFO - [database.py:42] - Successfully connected to database
+2025-09-22 08:16:52,475 - db.database - DEBUG - [database.py:56] - Initializing database schema
+2025-09-22 08:16:52,475 - db.database - INFO - [database.py:71] - Creating snippets table if not exists
+2025-09-22 08:16:52,475 - db.database - DEBUG - [database.py:110] - Executing query: CREATE TABLE IF NOT EXISTS snippets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            command_text TEXT NOT NULL,
+            tags TEXT,
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+2025-09-22 08:16:52,475 - db.database - DEBUG - [database.py:123] - Query affected row with ID: 0
+2025-09-22 08:16:52,475 - db.database - INFO - [database.py:76] - Checking and applying any pending migrations
+2025-09-22 08:16:52,475 - db.migrations - INFO - [migrations.py:128] - Current database version: 1
+2025-09-22 08:16:52,476 - db.database - INFO - [database.py:80] - Database schema initialization completed successfully
+2025-09-22 08:16:52,476 - __main__ - INFO - [main.py:43] - Database initialization completed
+2025-09-22 08:16:52,476 - __main__ - DEBUG - [main.py:46] - Initializing snippet manager
+2025-09-22 08:16:52,476 - __main__ - DEBUG - [main.py:50] - Creating main window
+2025-09-22 08:16:52,624 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-09-22 08:16:52,624 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-09-22 08:16:52,624 - db.database - DEBUG - [database.py:119] - Query returned 4 results
+2025-09-22 08:16:52,624 - db.database - INFO - [database.py:203] - Retrieved 4 snippets from database
+2025-09-22 08:16:52,624 - db.database - DEBUG - [database.py:205] - First snippet in list: {'id': 4, 'name': 'Vault', 'description': 'El perfil para vault que hay que usar al logarse', 'command_text': 'sre-operator', 'tags': 'vault', 'last_used': '2025-09-10T14:56:09.350758', 'created_at': '2025-09-10T14:56:09.350763'}
+2025-09-22 08:16:52,861 - __main__ - INFO - [main.py:53] - Application window displayed
+2025-09-22 08:16:52,862 - __main__ - DEBUG - [main.py:56] - Starting Qt event loop

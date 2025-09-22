@@ -1,0 +1,131 @@
+{
+  "project_name": "Command Snippet Manager",
+  "project_purpose": "A desktop GUI application for managing and executing shell command snippets that platform engineers and DevOps professionals use frequently. Built with PyQt6 for native macOS integration with SQLite storage.",
+  "tech_stack": {
+    "language": { "name": "Python", "version": "3.9+" },
+    "frameworks": ["PyQt6"],
+    "database": "SQLite",
+    "main_libraries": {
+      "PyQt6": "Cross-platform GUI framework for the desktop interface.",
+      "pytest": "Testing framework for unit and integration tests.",
+      "sqlite3": "Built-in database interface for local data persistence."
+    }
+  },
+  "directory_structure": [
+    { "path": "main.py", "purpose": "Application entry point that initializes components and starts Qt event loop." },
+    { "path": "config.py", "purpose": "Configuration settings including database path and application metadata." },
+    { "path": "db/", "purpose": "Data persistence layer with SQLite operations, models, and schema migrations." },
+    { "path": "core/", "purpose": "Business logic layer containing snippet management operations." },
+    { "path": "ui/", "purpose": "User interface layer with PyQt6 windows and dialogs." },
+    { "path": "utils/", "purpose": "Utility modules for logging, clipboard operations, terminal execution, and backup functionality." },
+    { "path": "tests/", "purpose": "Unit tests and test fixtures for all application components." },
+    { "path": "logs/", "purpose": "Application log files organized by date for debugging and monitoring." },
+    { "path": "data/", "purpose": "SQLite database storage directory (excluded from version control)." }
+  ],
+  "core_components": [
+    {
+      "path": "db/models.py",
+      "component_name": "Snippet",
+      "component_type": "Data Model",
+      "description": "Represents a command snippet with metadata including name, description, command text, tags, and timestamps. Provides serialization and tag parsing methods.",
+      "interacts_with": ["db/database.py", "core/snippet_manager.py", "ui/snippet_dialog.py"]
+    },
+    {
+      "path": "db/database.py",
+      "component_name": "Database",
+      "component_type": "Data Access Layer",
+      "description": "Handles all SQLite operations including CRUD operations for snippets, search functionality, and connection management. Includes migration support and comprehensive error handling.",
+      "interacts_with": ["db/models.py", "db/migrations.py", "core/snippet_manager.py"]
+    },
+    {
+      "path": "db/migrations.py",
+      "component_name": "DatabaseMigration",
+      "component_type": "Schema Migration Manager",
+      "description": "Manages database schema versioning and migrations. Currently handles removal of UNIQUE constraint from snippet names to allow duplicates.",
+      "interacts_with": ["db/database.py"]
+    },
+    {
+      "path": "core/snippet_manager.py",
+      "component_name": "SnippetManager",
+      "component_type": "Business Logic Service",
+      "description": "Orchestrates snippet operations between UI and database layers. Provides validation, search functionality, and snippet lifecycle management including usage tracking.",
+      "interacts_with": ["db/database.py", "db/models.py", "ui/main_window.py", "ui/snippet_dialog.py"]
+    },
+    {
+      "path": "ui/main_window.py",
+      "component_name": "MainWindow",
+      "component_type": "Primary UI Controller",
+      "description": "Main application window with snippet table, search functionality, command preview panel, and action buttons. Handles user interactions and coordinates with snippet manager.",
+      "interacts_with": ["core/snippet_manager.py", "ui/snippet_dialog.py", "ui/backup_dialog.py", "utils/clipboard.py"]
+    },
+    {
+      "path": "ui/snippet_dialog.py",
+      "component_name": "SnippetDialog",
+      "component_type": "UI Dialog",
+      "description": "Modal dialog for creating new snippets and editing existing ones. Provides form validation and data collection for snippet properties.",
+      "interacts_with": ["db/models.py", "core/snippet_manager.py"]
+    },
+    {
+      "path": "ui/backup_dialog.py",
+      "component_name": "BackupDialog",
+      "component_type": "UI Dialog",
+      "description": "Dialog for backup and restore operations allowing users to export snippets to JSON and import from backup files.",
+      "interacts_with": ["utils/backup.py", "db/database.py"]
+    },
+    {
+      "path": "utils/clipboard.py",
+      "component_name": "ClipboardUtils",
+      "component_type": "System Integration Utility",
+      "description": "Handles clipboard operations and terminal command execution on macOS using AppleScript to interact with Terminal.app.",
+      "interacts_with": ["ui/main_window.py"]
+    },
+    {
+      "path": "utils/logger.py",
+      "component_name": "LoggingUtils",
+      "component_type": "Logging Infrastructure",
+      "description": "Configures application-wide logging with rotating file handlers and console output. Organizes logs by date and provides structured debugging information.",
+      "interacts_with": ["main.py", "db/database.py", "utils/backup.py"]
+    },
+    {
+      "path": "utils/backup.py",
+      "component_name": "BackupUtils",
+      "component_type": "Data Export/Import Service",
+      "description": "Provides JSON export and import functionality for snippets with versioning support and import statistics tracking.",
+      "interacts_with": ["ui/backup_dialog.py", "db/database.py"]
+    }
+  ],
+  "key_workflows": [
+    {
+      "name": "Create New Snippet",
+      "description": "User clicks 'New Snippet' in MainWindow, opens SnippetDialog for data entry, validates input, then calls SnippetManager.add_snippet() which creates a Snippet model and persists it via Database.insert_snippet().",
+      "involved_components": ["ui/main_window.py", "ui/snippet_dialog.py", "core/snippet_manager.py", "db/models.py", "db/database.py"]
+    },
+    {
+      "name": "Search and Filter Snippets",
+      "description": "User types in search bar triggering MainWindow.filter_snippets(), which calls SnippetManager.find_snippets() that executes Database.search_snippets() with SQL LIKE queries across name, description, command text, and tags.",
+      "involved_components": ["ui/main_window.py", "core/snippet_manager.py", "db/database.py"]
+    },
+    {
+      "name": "Execute Command",
+      "description": "User selects snippet and clicks 'Execute', MainWindow gets command text, calls ClipboardUtils.execute_in_terminal_macos() to open Terminal.app via AppleScript, then updates usage timestamp via SnippetManager.record_usage().",
+      "involved_components": ["ui/main_window.py", "utils/clipboard.py", "core/snippet_manager.py", "db/database.py"]
+    },
+    {
+      "name": "Backup and Restore",
+      "description": "User opens BackupDialog from menu, chooses export/import operation, BackupUtils serializes snippets to JSON or deserializes from JSON file, maintaining data integrity and providing import statistics.",
+      "involved_components": ["ui/main_window.py", "ui/backup_dialog.py", "utils/backup.py", "db/database.py"]
+    },
+    {
+      "name": "Database Migration",
+      "description": "On application startup, Database.create_tables() calls DatabaseMigration.ensure_latest_version() which checks schema version and applies necessary migrations like removing UNIQUE constraints while preserving data.",
+      "involved_components": ["main.py", "db/database.py", "db/migrations.py"]
+    }
+  ],
+  "setup_and_commands": {
+    "install_dependencies": "pip install -r requirements.txt",
+    "run_application": "python main.py",
+    "run_tests": "pytest",
+    "setup_environment": "./setup.sh",
+    "quick_run": "./run.sh"
+  }
+}

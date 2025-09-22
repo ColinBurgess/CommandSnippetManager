@@ -1,0 +1,485 @@
+2025-08-14 16:26:15,040 - __main__ - INFO - [main.py:25] - Starting Command Snippet Manager application
+2025-08-14 16:26:15,269 - __main__ - DEBUG - [main.py:30] - Application name set to: Command Snippet Manager
+2025-08-14 16:26:15,273 - __main__ - DEBUG - [main.py:34] - Application style set to Fusion
+2025-08-14 16:26:15,273 - __main__ - INFO - [main.py:38] - Initializing database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 16:26:15,273 - db.database - DEBUG - [database.py:36] - Attempting to connect to database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 16:26:15,275 - db.database - INFO - [database.py:41] - Successfully connected to database
+2025-08-14 16:26:15,275 - db.database - DEBUG - [database.py:59] - Creating tables with force_recreate=True
+2025-08-14 16:26:15,275 - db.database - INFO - [database.py:75] - Dropping existing snippets table
+2025-08-14 16:26:15,275 - db.database - DEBUG - [database.py:114] - Executing query: DROP TABLE IF EXISTS snippets
+2025-08-14 16:26:15,277 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 0
+2025-08-14 16:26:15,277 - db.database - INFO - [database.py:81] - Creating snippets table
+2025-08-14 16:26:15,277 - db.database - DEBUG - [database.py:114] - Executing query: CREATE TABLE IF NOT EXISTS snippets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            command_text TEXT NOT NULL,
+            tags TEXT,
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+2025-08-14 16:26:15,277 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 0
+2025-08-14 16:26:15,278 - db.database - INFO - [database.py:84] - Table creation completed successfully
+2025-08-14 16:26:15,278 - __main__ - INFO - [main.py:43] - Database initialization completed
+2025-08-14 16:26:15,278 - __main__ - DEBUG - [main.py:46] - Initializing snippet manager
+2025-08-14 16:26:15,278 - __main__ - DEBUG - [main.py:50] - Creating main window
+2025-08-14 16:26:15,409 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:26:15,409 - db.database - DEBUG - [database.py:123] - Query returned 0 results
+2025-08-14 16:26:15,647 - __main__ - INFO - [main.py:53] - Application window displayed
+2025-08-14 16:26:15,647 - __main__ - DEBUG - [main.py:56] - Starting Qt event loop
+2025-08-14 16:26:27,608 - db.database - INFO - [database.py:148] - Inserting new snippet: test
+2025-08-14 16:26:27,609 - db.database - DEBUG - [database.py:149] - Snippet details: {'id': None, 'name': 'test', 'description': 'test', 'command_text': 'tests', 'tags': '', 'last_used': '2025-08-14T16:26:27.608907', 'created_at': '2025-08-14T16:26:27.608913'}
+2025-08-14 16:26:27,609 - db.database - DEBUG - [database.py:111] - Executing query: INSERT INTO snippets (name, description, command_text, tags, last_used, created_at)
+        VALUES (?, ?, ?, ?, ?, ?) with params: ('test', 'test', 'tests', '', '2025-08-14T16:26:27.608907', '2025-08-14T16:26:27.608913')
+2025-08-14 16:26:27,610 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 1
+2025-08-14 16:26:27,610 - db.database - INFO - [database.py:167] - Successfully inserted snippet with ID: 1
+2025-08-14 16:26:27,610 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:26:27,610 - db.database - DEBUG - [database.py:123] - Query returned 1 results
+2025-08-14 16:26:35,832 - db.database - INFO - [database.py:148] - Inserting new snippet: test2
+2025-08-14 16:26:35,832 - db.database - DEBUG - [database.py:149] - Snippet details: {'id': None, 'name': 'test2', 'description': 'test2', 'command_text': 'test2', 'tags': '', 'last_used': '2025-08-14T16:26:35.831992', 'created_at': '2025-08-14T16:26:35.832008'}
+2025-08-14 16:26:35,832 - db.database - DEBUG - [database.py:111] - Executing query: INSERT INTO snippets (name, description, command_text, tags, last_used, created_at)
+        VALUES (?, ?, ?, ?, ?, ?) with params: ('test2', 'test2', 'test2', '', '2025-08-14T16:26:35.831992', '2025-08-14T16:26:35.832008')
+2025-08-14 16:26:35,833 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 2
+2025-08-14 16:26:35,834 - db.database - INFO - [database.py:167] - Successfully inserted snippet with ID: 2
+2025-08-14 16:26:35,835 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:26:35,835 - db.database - DEBUG - [database.py:123] - Query returned 2 results
+2025-08-14 16:26:47,038 - db.database - INFO - [database.py:148] - Inserting new snippet: test3
+2025-08-14 16:26:47,038 - db.database - DEBUG - [database.py:149] - Snippet details: {'id': None, 'name': 'test3', 'description': 'rteser', 'command_text': 'wedresrcfqwecqwed', 'tags': '', 'last_used': '2025-08-14T16:26:47.038510', 'created_at': '2025-08-14T16:26:47.038521'}
+2025-08-14 16:26:47,039 - db.database - DEBUG - [database.py:111] - Executing query: INSERT INTO snippets (name, description, command_text, tags, last_used, created_at)
+        VALUES (?, ?, ?, ?, ?, ?) with params: ('test3', 'rteser', 'wedresrcfqwecqwed', '', '2025-08-14T16:26:47.038510', '2025-08-14T16:26:47.038521')
+2025-08-14 16:26:47,039 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 3
+2025-08-14 16:26:47,040 - db.database - INFO - [database.py:167] - Successfully inserted snippet with ID: 3
+2025-08-14 16:26:47,040 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:26:47,041 - db.database - DEBUG - [database.py:123] - Query returned 3 results
+2025-08-14 16:26:49,146 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (1,)
+2025-08-14 16:26:49,146 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:26:50,422 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (2,)
+2025-08-14 16:26:50,423 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:26:51,890 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (2,)
+2025-08-14 16:26:51,891 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:26:53,293 - db.database - DEBUG - [database.py:111] - Executing query: DELETE FROM snippets WHERE id = ? with params: (2,)
+2025-08-14 16:26:53,294 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 3
+2025-08-14 16:26:53,295 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:26:53,295 - db.database - DEBUG - [database.py:123] - Query returned 2 results
+2025-08-14 16:26:55,070 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (3,)
+2025-08-14 16:26:55,070 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:26:55,564 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (1,)
+2025-08-14 16:26:55,565 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:26:57,491 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (1,)
+2025-08-14 16:26:57,492 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:26:58,618 - db.database - DEBUG - [database.py:111] - Executing query: DELETE FROM snippets WHERE id = ? with params: (1,)
+2025-08-14 16:26:58,619 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 3
+2025-08-14 16:26:58,620 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:26:58,620 - db.database - DEBUG - [database.py:123] - Query returned 1 results
+2025-08-14 16:26:58,621 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (3,)
+2025-08-14 16:26:58,621 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:27:00,779 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (3,)
+2025-08-14 16:27:00,780 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:27:01,736 - db.database - DEBUG - [database.py:111] - Executing query: DELETE FROM snippets WHERE id = ? with params: (3,)
+2025-08-14 16:27:01,738 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 3
+2025-08-14 16:27:01,740 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:27:01,740 - db.database - DEBUG - [database.py:123] - Query returned 0 results
+2025-08-14 16:28:23,900 - db.database - INFO - [database.py:148] - Inserting new snippet: AWS ecr login
+2025-08-14 16:28:23,902 - db.database - DEBUG - [database.py:149] - Snippet details: {'id': None, 'name': 'AWS ecr login', 'description': '', 'command_text': 'export ECR_URL="936987187948.dkr.ecr.us-east-1.amazonaws.com"\nexport AWS_REGION=us-east-1\naws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URL', 'tags': '', 'last_used': '2025-08-14T16:28:23.899734', 'created_at': '2025-08-14T16:28:23.899752'}
+2025-08-14 16:28:23,902 - db.database - DEBUG - [database.py:111] - Executing query: INSERT INTO snippets (name, description, command_text, tags, last_used, created_at)
+        VALUES (?, ?, ?, ?, ?, ?) with params: ('AWS ecr login', '', 'export ECR_URL="936987187948.dkr.ecr.us-east-1.amazonaws.com"\nexport AWS_REGION=us-east-1\naws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URL', '', '2025-08-14T16:28:23.899734', '2025-08-14T16:28:23.899752')
+2025-08-14 16:28:23,903 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 4
+2025-08-14 16:28:23,904 - db.database - INFO - [database.py:167] - Successfully inserted snippet with ID: 4
+2025-08-14 16:28:23,905 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:28:23,905 - db.database - DEBUG - [database.py:123] - Query returned 1 results
+2025-08-14 16:28:25,855 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (4,)
+2025-08-14 16:28:25,856 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:28:34,107 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (4,)
+2025-08-14 16:28:34,107 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:28:36,867 - db.database - DEBUG - [database.py:111] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (4,)
+2025-08-14 16:28:36,867 - db.database - DEBUG - [database.py:119] - Query returned single result: True
+2025-08-14 16:28:36,867 - db.database - DEBUG - [database.py:111] - Executing query: UPDATE snippets
+        SET name = ?, description = ?, command_text = ?, tags = ?
+        WHERE id = ? with params: ('AWS ecr login', '', 'export ECR_URL="936987187948.dkr.ecr.us-east-1.amazonaws.com"\nexport AWS_REGION=us-east-1\naws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URL', 'ecr', 4)
+2025-08-14 16:28:36,868 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 4
+2025-08-14 16:28:36,869 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:28:36,869 - db.database - DEBUG - [database.py:123] - Query returned 1 results
+2025-08-14 16:29:12,057 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 16:29:12,058 - db.database - DEBUG - [database.py:123] - Query returned 1 results
+2025-08-14 17:02:47,106 - __main__ - INFO - [main.py:58] - Application event loop ended with code: 0
+2025-08-14 17:02:47,108 - __main__ - DEBUG - [main.py:61] - Cleaning up resources
+2025-08-14 17:02:47,108 - __main__ - INFO - [main.py:63] - Application shutdown complete
+2025-08-14 17:02:59,136 - __main__ - INFO - [main.py:25] - Starting Command Snippet Manager application
+2025-08-14 17:02:59,295 - __main__ - DEBUG - [main.py:30] - Application name set to: Command Snippet Manager
+2025-08-14 17:02:59,300 - __main__ - DEBUG - [main.py:34] - Application style set to Fusion
+2025-08-14 17:02:59,300 - __main__ - INFO - [main.py:38] - Initializing database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:02:59,300 - db.database - DEBUG - [database.py:36] - Attempting to connect to database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:02:59,301 - db.database - INFO - [database.py:41] - Successfully connected to database
+2025-08-14 17:02:59,301 - db.database - DEBUG - [database.py:59] - Creating tables with force_recreate=True
+2025-08-14 17:02:59,301 - db.database - INFO - [database.py:75] - Dropping existing snippets table
+2025-08-14 17:02:59,301 - db.database - DEBUG - [database.py:114] - Executing query: DROP TABLE IF EXISTS snippets
+2025-08-14 17:02:59,303 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 0
+2025-08-14 17:02:59,303 - db.database - INFO - [database.py:81] - Creating snippets table
+2025-08-14 17:02:59,304 - db.database - DEBUG - [database.py:114] - Executing query: CREATE TABLE IF NOT EXISTS snippets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            command_text TEXT NOT NULL,
+            tags TEXT,
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+2025-08-14 17:02:59,304 - db.database - DEBUG - [database.py:127] - Query affected row with ID: 0
+2025-08-14 17:02:59,304 - db.database - INFO - [database.py:84] - Table creation completed successfully
+2025-08-14 17:02:59,304 - __main__ - INFO - [main.py:43] - Database initialization completed
+2025-08-14 17:02:59,304 - __main__ - DEBUG - [main.py:46] - Initializing snippet manager
+2025-08-14 17:02:59,304 - __main__ - DEBUG - [main.py:50] - Creating main window
+2025-08-14 17:02:59,429 - db.database - DEBUG - [database.py:114] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:02:59,429 - db.database - DEBUG - [database.py:123] - Query returned 0 results
+2025-08-14 17:02:59,674 - __main__ - INFO - [main.py:53] - Application window displayed
+2025-08-14 17:02:59,674 - __main__ - DEBUG - [main.py:56] - Starting Qt event loop
+2025-08-14 17:06:17,507 - __main__ - INFO - [main.py:25] - Starting Command Snippet Manager application
+2025-08-14 17:06:17,647 - __main__ - DEBUG - [main.py:30] - Application name set to: Command Snippet Manager
+2025-08-14 17:06:17,651 - __main__ - DEBUG - [main.py:34] - Application style set to Fusion
+2025-08-14 17:06:17,651 - __main__ - INFO - [main.py:38] - Initializing database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:06:17,652 - db.database - DEBUG - [database.py:37] - Attempting to connect to database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:06:17,652 - db.database - INFO - [database.py:42] - Successfully connected to database
+2025-08-14 17:06:17,652 - db.database - DEBUG - [database.py:56] - Initializing database schema
+2025-08-14 17:06:17,653 - db.database - INFO - [database.py:71] - Creating snippets table if not exists
+2025-08-14 17:06:17,653 - db.database - DEBUG - [database.py:110] - Executing query: CREATE TABLE IF NOT EXISTS snippets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            command_text TEXT NOT NULL,
+            tags TEXT,
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+2025-08-14 17:06:17,653 - db.database - DEBUG - [database.py:123] - Query affected row with ID: 0
+2025-08-14 17:06:17,653 - db.database - INFO - [database.py:76] - Checking and applying any pending migrations
+2025-08-14 17:06:17,655 - db.migrations - INFO - [migrations.py:128] - Current database version: 0
+2025-08-14 17:06:17,655 - db.migrations - INFO - [migrations.py:66] - Starting migration to version 1
+2025-08-14 17:06:17,655 - db.migrations - INFO - [migrations.py:108] - UNIQUE constraint not found, no migration needed
+2025-08-14 17:06:17,656 - db.database - INFO - [database.py:80] - Database schema initialization completed successfully
+2025-08-14 17:06:17,657 - __main__ - INFO - [main.py:43] - Database initialization completed
+2025-08-14 17:06:17,657 - __main__ - DEBUG - [main.py:46] - Initializing snippet manager
+2025-08-14 17:06:17,657 - __main__ - DEBUG - [main.py:50] - Creating main window
+2025-08-14 17:06:17,779 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:06:17,780 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:06:17,780 - db.database - DEBUG - [database.py:119] - Query returned 0 results
+2025-08-14 17:06:17,780 - db.database - INFO - [database.py:203] - Retrieved 0 snippets from database
+2025-08-14 17:06:18,018 - __main__ - INFO - [main.py:53] - Application window displayed
+2025-08-14 17:06:18,018 - __main__ - DEBUG - [main.py:56] - Starting Qt event loop
+2025-08-14 17:06:33,341 - __main__ - INFO - [main.py:58] - Application event loop ended with code: 0
+2025-08-14 17:06:33,342 - __main__ - DEBUG - [main.py:61] - Cleaning up resources
+2025-08-14 17:06:33,342 - __main__ - INFO - [main.py:63] - Application shutdown complete
+2025-08-14 17:06:42,717 - __main__ - INFO - [main.py:25] - Starting Command Snippet Manager application
+2025-08-14 17:06:42,825 - __main__ - DEBUG - [main.py:30] - Application name set to: Command Snippet Manager
+2025-08-14 17:06:42,829 - __main__ - DEBUG - [main.py:34] - Application style set to Fusion
+2025-08-14 17:06:42,830 - __main__ - INFO - [main.py:38] - Initializing database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:06:42,830 - db.database - DEBUG - [database.py:37] - Attempting to connect to database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:06:42,830 - db.database - INFO - [database.py:42] - Successfully connected to database
+2025-08-14 17:06:42,830 - db.database - DEBUG - [database.py:56] - Initializing database schema
+2025-08-14 17:06:42,830 - db.database - INFO - [database.py:71] - Creating snippets table if not exists
+2025-08-14 17:06:42,830 - db.database - DEBUG - [database.py:110] - Executing query: CREATE TABLE IF NOT EXISTS snippets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            command_text TEXT NOT NULL,
+            tags TEXT,
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+2025-08-14 17:06:42,831 - db.database - DEBUG - [database.py:123] - Query affected row with ID: 0
+2025-08-14 17:06:42,831 - db.database - INFO - [database.py:76] - Checking and applying any pending migrations
+2025-08-14 17:06:42,831 - db.migrations - INFO - [migrations.py:128] - Current database version: 1
+2025-08-14 17:06:42,831 - db.database - INFO - [database.py:80] - Database schema initialization completed successfully
+2025-08-14 17:06:42,831 - __main__ - INFO - [main.py:43] - Database initialization completed
+2025-08-14 17:06:42,832 - __main__ - DEBUG - [main.py:46] - Initializing snippet manager
+2025-08-14 17:06:42,832 - __main__ - DEBUG - [main.py:50] - Creating main window
+2025-08-14 17:06:42,949 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:06:42,949 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:06:42,949 - db.database - DEBUG - [database.py:119] - Query returned 0 results
+2025-08-14 17:06:42,949 - db.database - INFO - [database.py:203] - Retrieved 0 snippets from database
+2025-08-14 17:06:43,186 - __main__ - INFO - [main.py:53] - Application window displayed
+2025-08-14 17:06:43,186 - __main__ - DEBUG - [main.py:56] - Starting Qt event loop
+2025-08-14 17:06:54,109 - db.database - INFO - [database.py:144] - Inserting new snippet: test
+2025-08-14 17:06:54,109 - db.database - DEBUG - [database.py:145] - Snippet details: {'id': None, 'name': 'test', 'description': 'test', 'command_text': 'test', 'tags': '', 'last_used': '2025-08-14T17:06:54.109164', 'created_at': '2025-08-14T17:06:54.109169'}
+2025-08-14 17:06:54,109 - db.database - DEBUG - [database.py:107] - Executing query: INSERT INTO snippets (name, description, command_text, tags, last_used, created_at)
+        VALUES (?, ?, ?, ?, ?, ?) with params: ('test', 'test', 'test', '', '2025-08-14T17:06:54.109164', '2025-08-14T17:06:54.109169')
+2025-08-14 17:06:54,110 - db.database - DEBUG - [database.py:123] - Query affected row with ID: 1
+2025-08-14 17:06:54,111 - db.database - INFO - [database.py:163] - Successfully inserted snippet with ID: 1
+2025-08-14 17:06:54,111 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:06:54,111 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:06:54,111 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:06:54,111 - db.database - INFO - [database.py:203] - Retrieved 1 snippets from database
+2025-08-14 17:06:54,111 - db.database - DEBUG - [database.py:205] - First snippet in list: {'id': 1, 'name': 'test', 'description': 'test', 'command_text': 'test', 'tags': '', 'last_used': '2025-08-14T17:06:54.109164', 'created_at': '2025-08-14T17:06:54.109169'}
+2025-08-14 17:06:57,942 - __main__ - INFO - [main.py:58] - Application event loop ended with code: 0
+2025-08-14 17:06:57,942 - __main__ - DEBUG - [main.py:61] - Cleaning up resources
+2025-08-14 17:06:57,943 - __main__ - INFO - [main.py:63] - Application shutdown complete
+2025-08-14 17:07:00,795 - __main__ - INFO - [main.py:25] - Starting Command Snippet Manager application
+2025-08-14 17:07:00,886 - __main__ - DEBUG - [main.py:30] - Application name set to: Command Snippet Manager
+2025-08-14 17:07:00,890 - __main__ - DEBUG - [main.py:34] - Application style set to Fusion
+2025-08-14 17:07:00,890 - __main__ - INFO - [main.py:38] - Initializing database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:07:00,890 - db.database - DEBUG - [database.py:37] - Attempting to connect to database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:07:00,890 - db.database - INFO - [database.py:42] - Successfully connected to database
+2025-08-14 17:07:00,891 - db.database - DEBUG - [database.py:56] - Initializing database schema
+2025-08-14 17:07:00,891 - db.database - INFO - [database.py:71] - Creating snippets table if not exists
+2025-08-14 17:07:00,891 - db.database - DEBUG - [database.py:110] - Executing query: CREATE TABLE IF NOT EXISTS snippets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            command_text TEXT NOT NULL,
+            tags TEXT,
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+2025-08-14 17:07:00,891 - db.database - DEBUG - [database.py:123] - Query affected row with ID: 0
+2025-08-14 17:07:00,891 - db.database - INFO - [database.py:76] - Checking and applying any pending migrations
+2025-08-14 17:07:00,891 - db.migrations - INFO - [migrations.py:128] - Current database version: 1
+2025-08-14 17:07:00,891 - db.database - INFO - [database.py:80] - Database schema initialization completed successfully
+2025-08-14 17:07:00,891 - __main__ - INFO - [main.py:43] - Database initialization completed
+2025-08-14 17:07:00,891 - __main__ - DEBUG - [main.py:46] - Initializing snippet manager
+2025-08-14 17:07:00,891 - __main__ - DEBUG - [main.py:50] - Creating main window
+2025-08-14 17:07:00,998 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:07:00,998 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:07:00,998 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:07:00,998 - db.database - INFO - [database.py:203] - Retrieved 1 snippets from database
+2025-08-14 17:07:00,998 - db.database - DEBUG - [database.py:205] - First snippet in list: {'id': 1, 'name': 'test', 'description': 'test', 'command_text': 'test', 'tags': '', 'last_used': '2025-08-14T17:06:54.109164', 'created_at': '2025-08-14T17:06:54.109169'}
+2025-08-14 17:07:01,222 - __main__ - INFO - [main.py:53] - Application window displayed
+2025-08-14 17:07:01,222 - __main__ - DEBUG - [main.py:56] - Starting Qt event loop
+2025-08-14 17:07:08,664 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (1,)
+2025-08-14 17:07:08,665 - db.database - DEBUG - [database.py:115] - Query returned single result: True
+2025-08-14 17:07:09,957 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (1,)
+2025-08-14 17:07:09,957 - db.database - DEBUG - [database.py:115] - Query returned single result: True
+2025-08-14 17:08:07,031 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (1,)
+2025-08-14 17:08:07,031 - db.database - DEBUG - [database.py:115] - Query returned single result: True
+2025-08-14 17:08:07,031 - db.database - DEBUG - [database.py:107] - Executing query: UPDATE snippets
+        SET name = ?, description = ?, command_text = ?, tags = ?
+        WHERE id = ? with params: ('AWS ecr login', 'Como logar en ECR despues de haber cargado el perfil de aws vault', 'export AWS_REGION=eu-west-2\nexport ECR_URL="936987187948.dkr.ecr.$AWS_REGION.amazonaws.com"\naws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URL', 'ecr', 1)
+2025-08-14 17:08:07,033 - db.database - DEBUG - [database.py:123] - Query affected row with ID: 0
+2025-08-14 17:08:07,034 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:08:07,034 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:08:07,034 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:07,034 - db.database - INFO - [database.py:203] - Retrieved 1 snippets from database
+2025-08-14 17:08:07,034 - db.database - DEBUG - [database.py:205] - First snippet in list: {'id': 1, 'name': 'AWS ecr login', 'description': 'Como logar en ECR despues de haber cargado el perfil de aws vault', 'command_text': 'export AWS_REGION=eu-west-2\nexport ECR_URL="936987187948.dkr.ecr.$AWS_REGION.amazonaws.com"\naws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URL', 'tags': 'ecr', 'last_used': '2025-08-14T17:06:54.109164', 'created_at': '2025-08-14T17:06:54.109169'}
+2025-08-14 17:08:12,095 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%e%', '%e%', '%e%', '%e%')
+2025-08-14 17:08:12,096 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:12,778 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%ec%', '%ec%', '%ec%', '%ec%')
+2025-08-14 17:08:12,779 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:14,242 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%ecr%', '%ecr%', '%ecr%', '%ecr%')
+2025-08-14 17:08:14,242 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:16,080 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%ec%', '%ec%', '%ec%', '%ec%')
+2025-08-14 17:08:16,081 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:16,243 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%e%', '%e%', '%e%', '%e%')
+2025-08-14 17:08:16,243 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:16,415 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:08:16,415 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:08:16,416 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:16,416 - db.database - INFO - [database.py:203] - Retrieved 1 snippets from database
+2025-08-14 17:08:16,416 - db.database - DEBUG - [database.py:205] - First snippet in list: {'id': 1, 'name': 'AWS ecr login', 'description': 'Como logar en ECR despues de haber cargado el perfil de aws vault', 'command_text': 'export AWS_REGION=eu-west-2\nexport ECR_URL="936987187948.dkr.ecr.$AWS_REGION.amazonaws.com"\naws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URL', 'tags': 'ecr', 'last_used': '2025-08-14T17:06:54.109164', 'created_at': '2025-08-14T17:06:54.109169'}
+2025-08-14 17:08:16,783 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%t%', '%t%', '%t%', '%t%')
+2025-08-14 17:08:16,784 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:16,842 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%te%', '%te%', '%te%', '%te%')
+2025-08-14 17:08:16,843 - db.database - DEBUG - [database.py:119] - Query returned 0 results
+2025-08-14 17:08:16,905 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%tes%', '%tes%', '%tes%', '%tes%')
+2025-08-14 17:08:16,906 - db.database - DEBUG - [database.py:119] - Query returned 0 results
+2025-08-14 17:08:16,980 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%test%', '%test%', '%test%', '%test%')
+2025-08-14 17:08:16,981 - db.database - DEBUG - [database.py:119] - Query returned 0 results
+2025-08-14 17:08:17,565 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%tes%', '%tes%', '%tes%', '%tes%')
+2025-08-14 17:08:17,566 - db.database - DEBUG - [database.py:119] - Query returned 0 results
+2025-08-14 17:08:17,747 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%te%', '%te%', '%te%', '%te%')
+2025-08-14 17:08:17,748 - db.database - DEBUG - [database.py:119] - Query returned 0 results
+2025-08-14 17:08:17,883 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE 1=1
+        
+            AND (
+                name LIKE ? OR
+                description LIKE ? OR
+                command_text LIKE ? OR
+                tags LIKE ?
+            )
+             ORDER BY last_used DESC with params: ('%t%', '%t%', '%t%', '%t%')
+2025-08-14 17:08:17,883 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:18,015 - db.database - DEBUG - [database.py:177] - Retrieving all snippets from database at: /Users/colin.moreno-burgess/github/Colin/CmdSnips/my_snippet_app/data/snippets.db
+2025-08-14 17:08:18,016 - db.database - DEBUG - [database.py:110] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        ORDER BY last_used DESC
+2025-08-14 17:08:18,016 - db.database - DEBUG - [database.py:119] - Query returned 1 results
+2025-08-14 17:08:18,016 - db.database - INFO - [database.py:203] - Retrieved 1 snippets from database
+2025-08-14 17:08:18,016 - db.database - DEBUG - [database.py:205] - First snippet in list: {'id': 1, 'name': 'AWS ecr login', 'description': 'Como logar en ECR despues de haber cargado el perfil de aws vault', 'command_text': 'export AWS_REGION=eu-west-2\nexport ECR_URL="936987187948.dkr.ecr.$AWS_REGION.amazonaws.com"\naws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URL', 'tags': 'ecr', 'last_used': '2025-08-14T17:06:54.109164', 'created_at': '2025-08-14T17:06:54.109169'}
+2025-08-14 17:08:20,713 - db.database - DEBUG - [database.py:107] - Executing query: SELECT id, name, description, command_text, tags, last_used, created_at
+        FROM snippets
+        WHERE id = ? with params: (1,)
+2025-08-14 17:08:20,713 - db.database - DEBUG - [database.py:115] - Query returned single result: True
+2025-08-14 17:08:50,653 - __main__ - INFO - [main.py:58] - Application event loop ended with code: 0
+2025-08-14 17:08:50,653 - __main__ - DEBUG - [main.py:61] - Cleaning up resources
+2025-08-14 17:08:50,654 - __main__ - INFO - [main.py:63] - Application shutdown complete
