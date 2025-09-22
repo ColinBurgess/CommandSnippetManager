@@ -7,11 +7,13 @@ from PyQt6.QtWidgets import (
     QTextEdit, QDialogButtonBox, QFormLayout, QMessageBox
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QFont
 from db.models import Snippet
 from ui.modern_dark_theme import ModernDarkTheme
 from ui.modern_widgets import ModernFrame
 from typing import Optional, Dict
+import logging
 
 
 class SnippetDialog(QDialog):
@@ -27,13 +29,62 @@ class SnippetDialog(QDialog):
             parent: Parent widget
             snippet: Existing snippet to edit (None for new snippet)
         """
-        super().__init__(parent)
-        self.snippet = snippet
-        self.is_editing = snippet is not None
+        try:
+            super().__init__(parent)
+            self.snippet = snippet
+            self.is_editing = snippet is not None
 
-        self._setup_ui()
-        self._populate_fields()
-        self._connect_signals()
+            self._setup_ui()
+            self._populate_fields()
+            self._connect_signals()
+            # Ensure selection is visible: apply a scoped stylesheet and palette
+            # using high-contrast colors so mouse selection is clearly visible.
+            # Use an opaque accent color for high visibility
+            selection_bg = ModernDarkTheme.COLORS.get('accent_blue', '#007acc')
+            selection_fg = ModernDarkTheme.COLORS.get('text_primary', '#ffffff')
+
+            dialog_selection_style = (
+                "QLineEdit, QTextEdit {"
+                f" selection-background-color: {selection_bg};"
+                f" selection-color: {selection_fg};"
+                " }"
+            )
+            # Append to any existing stylesheet on the dialog
+            try:
+                current_style = self.styleSheet() or ""
+                self.setStyleSheet(current_style + dialog_selection_style)
+            except Exception:
+                pass
+
+            # Programmatically ensure the palette Highlight role is set for
+            # child input widgets in case global stylesheet is overridden.
+            try:
+                from PyQt6.QtGui import QPalette, QColor
+
+                highlight_color = QColor(selection_bg)
+                text_color = QColor(selection_fg)
+                palette = QPalette()
+                palette.setColor(QPalette.ColorRole.Highlight, highlight_color)
+                palette.setColor(QPalette.ColorRole.HighlightedText, text_color)
+
+                for w in (self.name_edit, self.description_edit, self.command_edit, self.tags_edit):
+                    try:
+                        w.setPalette(palette)
+                    except Exception:
+                        # Non-fatal: continue if a widget doesn't accept palette this way
+                        pass
+            except Exception:
+                pass
+            # Connect to application focus changes to clear selection on QTextEdit when focus moves
+            try:
+                app = QApplication.instance()
+                if app:
+                    app.focusChanged.connect(self._on_focus_changed)
+            except Exception:
+                pass
+        except Exception:
+            logging.exception("Failed to initialize SnippetDialog")
+            raise
 
     def _setup_ui(self):
         """Set up the user interface elements."""
@@ -71,6 +122,8 @@ class SnippetDialog(QDialog):
         name_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
 
         self.name_edit = QLineEdit()
+        self.name_edit.setObjectName('name_edit')
+        self.name_edit.setAutoFillBackground(True)
         self.name_edit.setPlaceholderText("Enter a short, descriptive name...")
         self.name_edit.setMinimumHeight(36)
         form_layout.addRow(name_label, self.name_edit)
@@ -81,9 +134,12 @@ class SnippetDialog(QDialog):
         desc_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
 
         self.description_edit = QTextEdit()
+        self.description_edit.setObjectName('description_edit')
+        self.description_edit.setAutoFillBackground(True)
         self.description_edit.setPlaceholderText("Enter a longer description of what this command does...")
         self.description_edit.setMaximumHeight(100)
         self.description_edit.setMinimumHeight(80)
+        self.description_edit.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
         form_layout.addRow(desc_label, self.description_edit)
 
         # Command text field
@@ -92,9 +148,12 @@ class SnippetDialog(QDialog):
         command_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
 
         self.command_edit = QTextEdit()
+        self.command_edit.setObjectName('command_edit')
+        self.command_edit.setAutoFillBackground(True)
         self.command_edit.setPlaceholderText("Enter the command to execute...")
         self.command_edit.setMinimumHeight(140)
         self.command_edit.setFont(QFont("SF Mono, Monaco, Cascadia Code, Roboto Mono", 12))
+        self.command_edit.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
         form_layout.addRow(command_label, self.command_edit)
 
         # Tags field
@@ -103,6 +162,8 @@ class SnippetDialog(QDialog):
         tags_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
 
         self.tags_edit = QLineEdit()
+        self.tags_edit.setObjectName('tags_edit')
+        self.tags_edit.setAutoFillBackground(True)
         self.tags_edit.setPlaceholderText("Enter comma-separated tags (e.g., aws, docker, ssh)...")
         self.tags_edit.setMinimumHeight(36)
         form_layout.addRow(tags_label, self.tags_edit)
@@ -140,6 +201,35 @@ class SnippetDialog(QDialog):
         # Set focus to name field
         self.name_edit.setFocus()
 
+        # Estilo para selección de texto en campos de edición (específico por id)
+        sel_color = ModernDarkTheme.COLORS['accent_blue']
+        sel_color_opaque = sel_color  # opaque color for palette and high specificity
+
+        id_style = f"""
+            QLineEdit#name_edit, QLineEdit#tags_edit {{
+                selection-background-color: {sel_color_opaque};
+                selection-color: {ModernDarkTheme.COLORS['text_primary']};
+            }}
+            QTextEdit#description_edit, QTextEdit#command_edit {{
+                selection-background-color: {sel_color_opaque};
+                selection-color: {ModernDarkTheme.COLORS['text_primary']};
+            }}
+        """
+
+        # Apply id-specific style to dialog to increase specificity over global stylesheet
+        try:
+            self.setStyleSheet((self.styleSheet() or "") + id_style)
+        except Exception:
+            pass
+
+        # Also set per-widget styleSheet to ensure internal widget styling is applied
+        try:
+            self.name_edit.setStyleSheet("")
+            self.description_edit.setStyleSheet("")
+            self.command_edit.setStyleSheet("")
+            self.tags_edit.setStyleSheet("")
+        except Exception:
+            pass
     def _populate_fields(self):
         """Populate form fields if editing an existing snippet."""
         if self.snippet:
@@ -159,6 +249,47 @@ class SnippetDialog(QDialog):
 
         # Initial validation
         self._validate_input()
+
+    def _on_focus_changed(self, old, now):
+        """Clear selection in text edits when they lose focus."""
+        try:
+            # If an internal QTextEdit lost focus, clear its selection
+            for edit in (self.description_edit, self.command_edit, self.name_edit, self.tags_edit):
+                if old is edit and now is not edit:
+                    # QTextEdit selection
+                    if isinstance(edit, QTextEdit):
+                        cursor = edit.textCursor()
+                        if cursor.hasSelection():
+                            cursor.clearSelection()
+                            edit.setTextCursor(cursor)
+                            try:
+                                edit.viewport().update()
+                            except Exception:
+                                pass
+                    else:
+                        # QLineEdit: try to deselect
+                        try:
+                            edit.deselect()
+                        except Exception:
+                            try:
+                                edit.setSelection(0, 0)
+                            except Exception:
+                                pass
+        except Exception:
+            pass
+
+    def closeEvent(self, event):
+        """Cleanup: disconnect focusChanged handler when dialog closes."""
+        try:
+            app = QApplication.instance()
+            if app:
+                try:
+                    app.focusChanged.disconnect(self._on_focus_changed)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        super().closeEvent(event)
 
     def _validate_input(self):
         """Validate input and enable/disable save button accordingly."""

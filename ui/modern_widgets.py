@@ -52,10 +52,12 @@ class TagBadgeWidget(QWidget):
                 color: {color};
                 border: 1px solid {color}66;
                 border-radius: 12px;
-                padding: 4px 10px;
-                font-size: 11px;
+                padding: 10px 16px 10px 16px;
+                font-size: 15px;
                 font-weight: 500;
-                margin: 1px;
+                margin: 2px;
+                min-height: 38px;
+                min-width: 44px;
             }}
         """)
 
@@ -68,11 +70,9 @@ class TagBadgeWidget(QWidget):
         return badge
 
     def _get_tag_color(self, tag: str) -> str:
-        """Get a consistent color for a tag based on its content."""
-        # Use hash to get consistent color for the same tag
-        hash_value = hashlib.md5(tag.encode()).hexdigest()
-        color_index = int(hash_value[:2], 16) % len(self.tag_colors)
-        return self.tag_colors[color_index]
+        """Return a single, consistent color for all tags."""
+        # Usar azul moderno para todos los tags
+        return ModernDarkTheme.COLORS['accent_blue']
 
     def clear_tags(self):
         """Clear all tag badges."""
