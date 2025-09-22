@@ -12,6 +12,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QAction, QIcon, QColor
 from datetime import datetime
 from typing import Optional
+import logging
 
 from core.snippet_manager import SnippetManager
 from ui.modern_dark_theme import ModernDarkTheme
@@ -49,12 +50,27 @@ class MainWindow(QMainWindow):
     def _apply_theme(self):
         """Apply the modern dark theme to the application."""
         # Set application stylesheet
-        QApplication.instance().setStyleSheet(ModernDarkTheme.get_application_stylesheet())
+        try:
+            # On macOS the system may use a native menu bar that ignores Qt stylesheets.
+            # Disable native menu bar so Qt can style menus consistently across platforms.
+            try:
+                QApplication.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeMenuBar, True)
+                logging.debug("MainWindow: disabled native menu bar to allow Qt styling")
+            except Exception:
+                logging.debug("MainWindow: could not disable native menu bar (platform may ignore)")
+            app = QApplication.instance()
+            app_styles = ModernDarkTheme.get_application_stylesheet()
+            app.setStyleSheet(app_styles)
+            logging.debug("MainWindow: applied application stylesheet length=%d", len(app_styles))
 
-        # Apply additional dialog styles
-        dialog_styles = ModernDarkTheme.get_dialog_styles()
-        current_stylesheet = QApplication.instance().styleSheet()
-        QApplication.instance().setStyleSheet(current_stylesheet + dialog_styles)
+            # Apply additional dialog styles
+            dialog_styles = ModernDarkTheme.get_dialog_styles()
+            current_stylesheet = app.styleSheet() or ""
+            app.setStyleSheet(current_stylesheet + dialog_styles)
+            logging.debug("MainWindow: appended dialog stylesheet length=%d, total length now=%d",
+                          len(dialog_styles), len(app.styleSheet() or ""))
+        except Exception as e:
+            logging.exception("MainWindow: failed to apply theme: %s", e)
 
     def _setup_ui(self):
         """Set up the user interface."""
@@ -125,18 +141,7 @@ class MainWindow(QMainWindow):
         self.table.setColumnCount(5)  # Added column for status indicator
         self.table.setHorizontalHeaderLabels(["", "Name", "Description", "Tags", "Last Used"])
 
-        # Configure table for better row selection
-        # Estilo seguro para selección de fila: fondo verde y texto blanco
-        self.table.setStyleSheet("""
-            QTableWidget::item:selected:active {
-                background-color: #4caf50;
-                color: #fff;
-            }
-            QTableWidget::item:selected:!active {
-                background-color: #388e3c;
-                color: #fff;
-            }
-        """)
+        # Configure table for better row selection (styles centralized in theme)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setAlternatingRowColors(True)
@@ -259,6 +264,11 @@ class MainWindow(QMainWindow):
     def _create_menu_bar(self):
         """Create the application menu bar."""
         menubar = self.menuBar()
+        try:
+            # Ensure the menubar is not using the platform-native menu rendering
+            menubar.setNativeMenuBar(False)
+        except Exception:
+            logging.debug("MainWindow: could not set menubar native flag")
 
         # File menu
         file_menu = menubar.addMenu("File")

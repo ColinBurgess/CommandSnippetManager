@@ -129,8 +129,6 @@ class ModernDarkTheme:
             alternate-background-color: {ModernDarkTheme.COLORS['surface']};
             gridline-color: {ModernDarkTheme.COLORS['border']};
             border: none;
-            selection-background-color: {ModernDarkTheme.COLORS['selection']};
-            selection-color: {ModernDarkTheme.COLORS['text_primary']};
             outline: none;
         }}
 
@@ -142,10 +140,14 @@ class ModernDarkTheme:
             background-color: transparent;
         }}
 
-        QTableWidget::item:selected {{
-            background-color: {ModernDarkTheme.COLORS['selection']};
+        /* Selected rows in table use green accents for positive action clarity */
+        QTableWidget::item:selected:active {{
+            background-color: {ModernDarkTheme.COLORS['accent_green']};
             color: {ModernDarkTheme.COLORS['text_primary']};
-            border-left: 3px solid {ModernDarkTheme.COLORS['selection_border']};
+        }}
+        QTableWidget::item:selected:!active {{
+            background-color: #388e3c; /* darker green for inactive */
+            color: {ModernDarkTheme.COLORS['text_primary']};
         }}
 
         QTableWidget::item:hover {{
@@ -267,6 +269,12 @@ class ModernDarkTheme:
 
         QMenu::item:selected {{
             background-color: {ModernDarkTheme.COLORS['selection']};
+        }}
+
+        /* Strengthen menu item focus/hover to use the same border focus color */
+        QMenu::item:focus, QMenu::item:pressed, QMenu::item:selected:active {{
+            background-color: {ModernDarkTheme.COLORS['selection']};
+            border: 1px solid {ModernDarkTheme.COLORS['border_focus']};
         }}
 
         /* Toolbar */
@@ -428,6 +436,39 @@ class ModernDarkTheme:
             min-width: 80px;
             padding: 6px 12px;
         }}
+
+        /* Dialog-specific input selection overrides (higher specificity) */
+        QLineEdit#name_edit, QLineEdit#tags_edit {{
+            selection-background-color: {ModernDarkTheme.COLORS['accent_blue']};
+            selection-color: {ModernDarkTheme.COLORS['text_primary']};
+        }}
+        QTextEdit#description_edit, QTextEdit#command_edit {{
+            selection-background-color: {ModernDarkTheme.COLORS['accent_blue']};
+            selection-color: {ModernDarkTheme.COLORS['text_primary']};
+        }}
+        /* Make focus border for dialog inputs more visible and consistent */
+        QLineEdit#name_edit:focus, QLineEdit#tags_edit:focus,
+        QTextEdit#description_edit:focus, QTextEdit#command_edit:focus {{
+            border: 2px solid {ModernDarkTheme.COLORS['border_focus']};
+            background-color: {ModernDarkTheme.COLORS['surface_elevated']};
+        }}
+
+        /* Ensure QTextEdit internal viewport is transparent so borders are visible */
+        QTextEdit#description_edit QWidget, QTextEdit#command_edit QWidget {{
+            background: transparent;
+        }}
+
+        /* Increase specificity for selection and focus so it applies uniformly */
+        QDialog QLineEdit, QDialog QTextEdit {{
+            selection-background-color: {ModernDarkTheme.COLORS['selection']};
+            selection-color: {ModernDarkTheme.COLORS['text_primary']};
+        }}
+
+        /* Property-based focused selectors for deterministic visuals */
+        QLineEdit[focused="true"], QTextEdit[focused="true"] {{
+            border: 2px solid {ModernDarkTheme.COLORS['border_focus']};
+            background-color: {ModernDarkTheme.COLORS['surface_elevated']};
+        }}
         """
 
     @staticmethod
@@ -439,10 +480,12 @@ class ModernDarkTheme:
                 color: {color};
                 border: 1px solid {color}66;
                 border-radius: 12px;
-                padding: 2px 8px;
-                font-size: 11px;
+                padding: 10px 16px;
+                font-size: 15px;
                 font-weight: 500;
-                margin: 1px;
+                margin: 2px;
+                min-height: 38px;
+                min-width: 44px;
             }}
         """
 

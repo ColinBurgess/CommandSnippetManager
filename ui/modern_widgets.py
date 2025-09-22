@@ -45,21 +45,8 @@ class TagBadgeWidget(QWidget):
         # Generate consistent color for tag
         color = self._get_tag_color(tag)
 
-        # Apply badge styling
-        badge.setStyleSheet(f"""
-            QLabel {{
-                background-color: {color}33;
-                color: {color};
-                border: 1px solid {color}66;
-                border-radius: 12px;
-                padding: 10px 16px 10px 16px;
-                font-size: 15px;
-                font-weight: 500;
-                margin: 2px;
-                min-height: 38px;
-                min-width: 44px;
-            }}
-        """)
+        # Apply badge styling using centralized theme helper
+        badge.setStyleSheet(ModernDarkTheme.create_tag_badge_style(color))
 
         # Set font
         font = QFont()
