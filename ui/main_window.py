@@ -582,6 +582,9 @@ class MainWindow(QMainWindow):
 
     def filter_snippets(self):
         """Filter snippets based on search text."""
+        # Preserve currently selected snippet (by id) so we can re-select it
+        previous_selected_id = self.get_selected_snippet_id()
+
         raw = self.search_edit.text().strip()
         # Allow users to type '*' as a familiar wildcard; map it to SQL '%' wildcard
         if '*' in raw:
@@ -589,7 +592,23 @@ class MainWindow(QMainWindow):
         else:
             search_text = raw
 
+        # Reload snippets according to the filter
         self.load_snippets(search_term=search_text)
+
+        # If the previously selected snippet is still present in the filtered results,
+        # re-select its row so the preview doesn't jump to the first item unexpectedly.
+        try:
+            if previous_selected_id is not None:
+                for r in range(self.table.rowCount()):
+                    it = self.table.item(r, 1)  # name column stores the userRole id
+                    if it and it.data(Qt.ItemDataRole.UserRole) == previous_selected_id:
+                        self.table.selectRow(r)
+                        # Update preview explicitly
+                        self._update_command_preview()
+                        break
+        except Exception:
+            # Don't let selection rehydration break filtering; ignore failures
+            pass
 
     def get_selected_snippet_id(self) -> Optional[int]:
         """
