@@ -123,6 +123,19 @@ class ModernDarkTheme:
             background-color: {ModernDarkTheme.COLORS['surface_elevated']};
         }}
 
+        /* Command preview specific overrides to ensure selection is highly visible */
+        QTextEdit#command_edit {{
+            background-color: {ModernDarkTheme.COLORS['surface']};
+            color: {ModernDarkTheme.COLORS['text_primary']};
+            selection-background-color: #3399ff66; /* semi-transparent bright blue */
+            selection-color: {ModernDarkTheme.COLORS['text_primary']};
+        }}
+
+        /* The internal viewport of QTextEdit can mask selection on some platforms; make it explicit */
+        QTextEdit#command_edit QWidget {{
+            background: transparent;
+        }}
+
         /* Table Widget */
         QTableWidget {{
             background-color: {ModernDarkTheme.COLORS['background']};
@@ -446,6 +459,15 @@ class ModernDarkTheme:
             selection-background-color: {ModernDarkTheme.COLORS['accent_blue']};
             selection-color: {ModernDarkTheme.COLORS['text_primary']};
         }}
+
+        /* Search bar specific selection rules to ensure visibility */
+        QLineEdit#search_edit {{
+            selection-background-color: #3399ff66;
+            selection-color: {ModernDarkTheme.COLORS['text_primary']};
+        }}
+        QLineEdit#search_edit QWidget {{
+            background: transparent;
+        }}
         /* Make focus border for dialog inputs more visible and consistent */
         QLineEdit#name_edit:focus, QLineEdit#tags_edit:focus,
         QTextEdit#description_edit:focus, QTextEdit#command_edit:focus {{
@@ -474,18 +496,21 @@ class ModernDarkTheme:
     @staticmethod
     def create_tag_badge_style(color: str):
         """Create a badge style for tags."""
+        # Use theme primary text color for label text to ensure contrast on dark backgrounds
+        text_col = ModernDarkTheme.COLORS['text_primary']
         return f"""
             QLabel {{
-                background-color: {color}33;
-                color: {color};
+                background-color: {color}33; /* subtle translucent fill */
+                color: {text_col};
                 border: 1px solid {color}66;
-                border-radius: 12px;
-                padding: 10px 16px;
-                font-size: 15px;
+                border-radius: 8px;
+                padding: 2px 8px;
+                font-size: 12px;
                 font-weight: 500;
-                margin: 2px;
-                min-height: 38px;
-                min-width: 44px;
+                margin: 2px 0px;
+                min-height: 18px;
+                min-width: 28px;
+                max-width: 160px;
             }}
         """
 

@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
     QTableWidgetItem, QLineEdit, QPushButton, QMessageBox, QStatusBar,
     QHeaderView, QAbstractItemView, QSplitter, QTextEdit, QLabel,
-    QFrame, QToolBar, QSizePolicy, QApplication
+    QFrame, QToolBar, QSizePolicy, QApplication, QListWidget, QListWidgetItem
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QAction, QIcon, QColor
@@ -19,7 +19,7 @@ from ui.modern_dark_theme import ModernDarkTheme
 from ui.snippet_dialog import SnippetDialog
 from ui.backup_dialog import BackupDialog
 from ui.modern_dark_theme import ModernDarkTheme
-from ui.modern_widgets import TagBadgeWidget, ModernFrame, ModernSeparator
+from ui.modern_widgets import TagBadgeWidget, ModernFrame, ModernSeparator, SnippetCard
 from utils import copy_to_clipboard, execute_in_terminal_macos
 from db.models import Snippet
 
@@ -94,6 +94,19 @@ class MainWindow(QMainWindow):
         # Create toolbar
         self._create_toolbar()
 
+        # Hide the native menu bar (on macOS it appears at the top) because
+        # toolbar actions provide the same functionality. This removes the
+        # 'File' label and frees vertical space.
+        try:
+            mb = self.menuBar()
+            try:
+                mb.setNativeMenuBar(False)
+            except Exception:
+                pass
+            mb.setVisible(False)
+        except Exception:
+            pass
+
         # Search section - compact and streamlined
         search_layout = QHBoxLayout()
         search_layout.setContentsMargins(0, 0, 0, 0)
@@ -107,7 +120,9 @@ class MainWindow(QMainWindow):
 
         # Compact search input
         self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("Search snippets by name, description, command, or tags...")
+        # Allow targeting via stylesheet and ensure selection is visible
+        self.search_edit.setObjectName('search_edit')
+        self.search_edit.setPlaceholderText("Search snippets by name/description/command/tags — use '%' as wildcard, or separate tags with commas")
         self.search_edit.setFixedHeight(32)  # Reduced height
         self.search_edit.setStyleSheet(f"""
             QLineEdit {{
@@ -117,6 +132,8 @@ class MainWindow(QMainWindow):
                 padding: 0 12px;
                 color: {ModernDarkTheme.COLORS['text_primary']};
                 font-size: 13px;
+                selection-background-color: #3399ff66; /* visible blue selection */
+                selection-color: {ModernDarkTheme.COLORS['text_primary']};
             }}
             QLineEdit:focus {{
                 border-color: {ModernDarkTheme.COLORS['border_focus']};
@@ -158,13 +175,22 @@ class MainWindow(QMainWindow):
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)  # Status indicator
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # Name
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Description - expandable
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # Tags
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Description - expandable (priority)
+        # Make tags a fixed width so it cannot steal space from description
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)  # Tags
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Last Used
 
         # Set status column width and description minimum
         self.table.setColumnWidth(0, 30)
-        self.table.setColumnWidth(2, 300)  # Minimum width for description
+        self.table.setColumnWidth(2, 500)  # Give description more room by default
+        # Fix tags column width so badges cannot grow unbounded
+        self.table.setColumnWidth(3, 180)
+
+        # Fallback default row height to avoid visual jitter from embedded widgets
+        try:
+            self.table.verticalHeader().setDefaultSectionSize(36)
+        except Exception:
+            pass
 
         # Enable word wrap for better text display
         self.table.setWordWrap(True)
@@ -172,6 +198,12 @@ class MainWindow(QMainWindow):
 
         # Add table to layout
         left_layout.addWidget(self.table)
+
+        # Card list (hidden by default)
+        self.card_list = QListWidget()
+        self.card_list.setVisible(False)
+        self.card_list.setSpacing(8)
+        left_layout.addWidget(self.card_list)
 
         # Right side - command preview with modern styling
         right_widget = ModernFrame()
@@ -193,10 +225,19 @@ class MainWindow(QMainWindow):
 
         # Command text display
         self.command_preview = QTextEdit()
+        # Give the preview a specific object name so stylesheet rules can target it
+        self.command_preview.setObjectName('command_edit')
         self.command_preview.setReadOnly(True)
         self.command_preview.setFont(QFont("SF Mono, Monaco, Cascadia Code, Roboto Mono", 12))
         self.command_preview.setPlaceholderText("Select a snippet to preview its command...")
         self.command_preview.setMinimumHeight(200)
+        # Ensure text selection is enabled even in read-only mode so users
+        # can highlight text and see the selection clearly.
+        try:
+            self.command_preview.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse | Qt.TextInteractionFlag.TextSelectableByKeyboard)
+        except Exception:
+            # Fallback if flags API differs across PyQt versions
+            pass
         right_layout.addWidget(self.command_preview)
 
         # Add widgets to splitter
@@ -326,6 +367,13 @@ class MainWindow(QMainWindow):
         execute_action.triggered.connect(self.execute_command)
         toolbar.addAction(execute_action)
 
+        # Toggle card/table view
+        self.view_toggle_action = QAction("Card View", self)
+        self.view_toggle_action.setCheckable(True)
+        self.view_toggle_action.setStatusTip("Toggle card (list) view")
+        self.view_toggle_action.toggled.connect(self._on_toggle_view)
+        toolbar.addAction(self.view_toggle_action)
+
     def _connect_signals(self):
         """Connect signals to their corresponding slots."""
         # Search functionality
@@ -344,6 +392,11 @@ class MainWindow(QMainWindow):
 
         # Ensure proper row selection when clicking on any cell
         self.table.itemClicked.connect(self._on_item_clicked)
+        # Card list click
+        try:
+            self.card_list.itemClicked.connect(self._on_card_clicked)
+        except Exception:
+            pass
 
     def _on_item_clicked(self, item):
         """Handle cell clicks to ensure entire row is selected."""
@@ -379,6 +432,48 @@ class MainWindow(QMainWindow):
         else:
             self.command_preview.clear()
 
+    def _on_toggle_view(self, enabled: bool):
+        """Toggle between table view and card list view."""
+        self.table.setVisible(not enabled)
+        self.card_list.setVisible(enabled)
+        if enabled:
+            # Populate cards when switching to card view
+            self._populate_card_list()
+
+    def _populate_card_list(self):
+        """Populate the QListWidget with SnippetCard widgets."""
+        try:
+            self.card_list.clear()
+            for snippet in self.current_snippets:
+                item = QListWidgetItem()
+                card = SnippetCard({
+                    'name': snippet.name,
+                    'description': snippet.description,
+                    'tags': snippet.tags
+                })
+                item.setSizeHint(card.sizeHint())
+                self.card_list.addItem(item)
+                self.card_list.setItemWidget(item, card)
+        except Exception as e:
+            logging.exception("Failed to populate card list: %s", e)
+
+    def _on_card_clicked(self, item: QListWidgetItem):
+        """Handle clicks on card items by selecting the corresponding snippet."""
+        try:
+            row = self.card_list.row(item)
+            if 0 <= row < len(self.current_snippets):
+                snippet = self.current_snippets[row]
+                # Select corresponding row in table for command preview and actions
+                # Find and select the table row with matching snippet id
+                for r in range(self.table.rowCount()):
+                    it = self.table.item(r, 1)
+                    if it and it.data(Qt.ItemDataRole.UserRole) == snippet.id:
+                        self.table.selectRow(r)
+                        self._update_command_preview()
+                        break
+        except Exception:
+            pass
+
     def load_snippets(self, search_term: str = "", tags_filter: str = ""):
         """
         Load and display snippets in the table.
@@ -400,8 +495,7 @@ class MainWindow(QMainWindow):
             self.table.setRowCount(len(snippets))
 
             for row, snippet in enumerate(snippets):
-                # Set dynamic row height para que los tags no se corten
-                self.table.setRowHeight(row, 40)
+                # Let rows size to content; avoid forcing a static height which can cause clipping
 
                 # Status indicator (empty for now, could be used for favorite/recent status)
                 status_item = QTableWidgetItem("")
@@ -429,8 +523,10 @@ class MainWindow(QMainWindow):
                     self.table.setCellWidget(row, 3, tag_widget)
                 else:
                     # Empty cell for no tags
-                    tags_item = QTableWidgetItem("")
-                    self.table.setItem(row, 3, tags_item)
+                    # Use a small placeholder widget to keep row heights consistent
+                    placeholder = QWidget()
+                    placeholder.setFixedHeight(24)
+                    self.table.setCellWidget(row, 3, placeholder)
 
                 # Last Used with cleaner formatting
                 if snippet.last_used:
@@ -466,7 +562,19 @@ class MainWindow(QMainWindow):
                 self.show_status_message(f"Loaded {count} snippet(s)")
 
             # Adjust row heights to fit content
+            # Resize rows then enforce a uniform minimum to avoid mixed heights
             self.table.resizeRowsToContents()
+            try:
+                self.table.verticalHeader().setDefaultSectionSize(36)
+            except Exception:
+                pass
+
+            # If card view is active, update it as well
+            try:
+                if getattr(self, 'view_toggle_action', None) and self.view_toggle_action.isChecked():
+                    self._populate_card_list()
+            except Exception:
+                pass
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load snippets: {e}")
@@ -474,7 +582,13 @@ class MainWindow(QMainWindow):
 
     def filter_snippets(self):
         """Filter snippets based on search text."""
-        search_text = self.search_edit.text().strip()
+        raw = self.search_edit.text().strip()
+        # Allow users to type '*' as a familiar wildcard; map it to SQL '%' wildcard
+        if '*' in raw:
+            search_text = raw.replace('*', '%')
+        else:
+            search_text = raw
+
         self.load_snippets(search_term=search_text)
 
     def get_selected_snippet_id(self) -> Optional[int]:
@@ -487,6 +601,8 @@ class MainWindow(QMainWindow):
         current_row = self.table.currentRow()
         if current_row >= 0:
             name_item = self.table.item(current_row, 1)  # Name is now in column 1
+
+
             if name_item:
                 return name_item.data(Qt.ItemDataRole.UserRole)
         return None
