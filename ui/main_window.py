@@ -12,6 +12,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QAction, QIcon, QColor
 from datetime import datetime
 from typing import Optional
+import re
 import logging
 
 from core.snippet_manager import SnippetManager
@@ -508,7 +509,13 @@ class MainWindow(QMainWindow):
                 self.table.setItem(row, 1, name_item)
 
                 # Description - full text, multiline, no truncation
-                description_item = QTableWidgetItem(snippet.description)  # Full description
+                # Sanitize description to remove problematic invisible
+                # characters (zero-width spaces, soft hyphens) that can
+                # cause words to appear incorrectly spaced in the table.
+                raw_desc = snippet.description or ""
+                sanitized_desc = re.sub(r"[\u200B\u200C\u200D\uFEFF\u00AD]",
+                                        "", raw_desc)
+                description_item = QTableWidgetItem(sanitized_desc)
                 description_item.setFont(QFont("", 12))
                 description_item.setForeground(QColor(ModernDarkTheme.COLORS['text_secondary']))
                 # Enable text wrapping for this item
