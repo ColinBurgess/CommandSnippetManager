@@ -285,6 +285,32 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(self.copy_button)
         button_layout.addWidget(self.execute_button)
 
+        # Visible Card View toggle button in the main action row
+        self.card_view_button = QPushButton("🗂️ Card View")
+        self.card_view_button.setCheckable(True)
+        self.card_view_button.setChecked(False)
+        # Use same secondary button style as toolbar for visual parity
+        try:
+            self.card_view_button.setStyleSheet(button_styles['secondary'])
+            self.card_view_button.setMinimumHeight(30)
+            self.card_view_button.setFont(QFont("", 12, QFont.Weight.Medium))
+        except Exception:
+            pass
+        button_layout.addWidget(self.card_view_button)
+
+        # Keep the toolbar QAction and the visible button in sync so
+        # toggling either updates the other and triggers the same view change
+        try:
+            if getattr(self, 'view_toggle_action', None):
+                # initialize state
+                self.card_view_button.setChecked(self.view_toggle_action.isChecked())
+                # user toggles visible button -> toggle toolbar action (which already calls _on_toggle_view)
+                self.card_view_button.toggled.connect(lambda checked: self.view_toggle_action.setChecked(checked))
+                # toggling the toolbar action (from menu/shortcut) updates the visible button
+                self.view_toggle_action.toggled.connect(lambda checked: self.card_view_button.setChecked(checked))
+        except Exception:
+            pass
+
         main_layout.addLayout(button_layout)  # Changed from addWidget(button_frame) to addLayout
 
         # Status bar
