@@ -167,6 +167,12 @@ class ModernDarkTheme:
             background-color: {ModernDarkTheme.COLORS['hover']};
         }}
 
+        /* Ensure description text doesn't change weight/color on hover */
+        QTableWidget::item:hover, QTableWidget::item:selected {{
+            color: {ModernDarkTheme.COLORS['text_primary']};
+            font-weight: 400;
+        }}
+
         /* Table Headers */
         QHeaderView::section {{
             background-color: {ModernDarkTheme.COLORS['surface']};
