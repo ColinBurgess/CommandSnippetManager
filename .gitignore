@@ -64,3 +64,6 @@ Thumbs.db
 # Application specific
 data/
 *.db
+
+# Runtime logs
+logs/
