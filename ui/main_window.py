@@ -80,8 +80,18 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1000, 600)
         self.resize(1200, 800)
 
-        # Create menu bar
-        self._create_menu_bar()
+        # The application provides toolbar/buttons for all actions.
+        # Do not create the in-window menu bar to keep the UI minimal.
+        # (Keep _create_menu_bar available for future use.)
+        try:
+            mb = self.menuBar()
+            try:
+                mb.setNativeMenuBar(False)
+            except Exception:
+                pass
+            mb.setVisible(False)
+        except Exception:
+            pass
 
         # Central widget
         central_widget = QWidget()
@@ -92,8 +102,11 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(8)  # Reduced from 16
         main_layout.setContentsMargins(12, 4, 12, 4)  # Reduced margins
 
-        # Create toolbar
-        self._create_toolbar()
+    # Toolbar is optional; actions are available via the main
+    # action row (buttons) below the preview. Do not create the
+    # in-window toolbar to keep the UI minimal and avoid duplicate
+    # controls above the search box.
+    # (The _create_toolbar method is kept for programmatic use.)
 
         # Hide the native menu bar (on macOS it appears at the top) because
         # toolbar actions provide the same functionality. This removes the
@@ -331,32 +344,10 @@ class MainWindow(QMainWindow):
 
     def _create_menu_bar(self):
         """Create the application menu bar."""
-        menubar = self.menuBar()
-        try:
-            # Ensure the menubar is not using the platform-native menu rendering
-            menubar.setNativeMenuBar(False)
-        except Exception:
-            logging.debug("MainWindow: could not set menubar native flag")
-
-        # File menu
-        file_menu = menubar.addMenu("File")
-
-        # Backup submenu
-        backup_menu = file_menu.addMenu("Backup")
-
-        backup_action = QAction("Backup/Restore...", self)
-        backup_action.setStatusTip("Export or import snippets")
-        backup_action.triggered.connect(self.show_backup_dialog)
-        backup_menu.addAction(backup_action)
-
-        file_menu.addSeparator()
-
-        # Exit action
-        exit_action = QAction("Exit", self)
-        exit_action.setShortcut("Ctrl+Q")
-        exit_action.setStatusTip("Exit application")
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
+        # Keep the method available for programmatic use, but do not
+        # create the menu during normal startup as toolbar/buttons are
+        # used instead for a more focused UI.
+        logging.debug("MainWindow: _create_menu_bar called (menu creation is disabled by default)")
 
     def show_backup_dialog(self):
         """Show the backup/restore dialog."""
