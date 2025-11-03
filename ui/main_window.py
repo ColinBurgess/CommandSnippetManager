@@ -270,6 +270,7 @@ class MainWindow(QMainWindow):
         self.new_button = QPushButton("✨ New Snippet")
         self.edit_button = QPushButton("✏️ Edit")
         self.delete_button = QPushButton("🗑️ Delete")
+        self.backup_button = QPushButton("💾 Backup")
         self.copy_button = QPushButton("📋 Copy Command")
         self.execute_button = QPushButton("▶️ Execute")
 
@@ -278,11 +279,12 @@ class MainWindow(QMainWindow):
         self.new_button.setStyleSheet(button_styles['primary'])
         self.edit_button.setStyleSheet(button_styles['secondary'])
         self.delete_button.setStyleSheet(button_styles['danger'])
+        self.backup_button.setStyleSheet(button_styles['secondary'])
         self.copy_button.setStyleSheet(button_styles['success'])
         self.execute_button.setStyleSheet(button_styles['primary'])
 
         # Set button heights - more compact
-        for button in [self.new_button, self.edit_button, self.delete_button,
+        for button in [self.new_button, self.edit_button, self.delete_button, self.backup_button,
                       self.copy_button, self.execute_button]:
             button.setMinimumHeight(30)  # Reduced from 36
             button.setFont(QFont("", 12, QFont.Weight.Medium))  # Slightly smaller font        # Initially disable buttons that require selection
@@ -294,6 +296,7 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(self.new_button)
         button_layout.addWidget(self.edit_button)
         button_layout.addWidget(self.delete_button)
+        button_layout.addWidget(self.backup_button)
         button_layout.addStretch()
         button_layout.addWidget(self.copy_button)
         button_layout.addWidget(self.execute_button)
@@ -401,6 +404,7 @@ class MainWindow(QMainWindow):
         self.new_button.clicked.connect(self.on_new_snippet)
         self.edit_button.clicked.connect(self.on_edit_snippet)
         self.delete_button.clicked.connect(self.on_delete_snippet)
+        self.backup_button.clicked.connect(self.on_backup)
         self.copy_button.clicked.connect(self.copy_command)
         self.execute_button.clicked.connect(self.execute_command)
 
@@ -719,6 +723,16 @@ class MainWindow(QMainWindow):
                     self.show_status_message(f"Snippet '{snippet.name}' deleted successfully")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to delete snippet: {e}")
+
+    def on_backup(self):
+        """Handle backup button click - open backup dialog with options."""
+        try:
+            backup_dialog = BackupDialog(self.snippet_manager.db.connection, self.snippet_manager, self)
+            backup_dialog.exec()
+            # Refresh snippets after potential restore
+            self.load_snippets()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open backup dialog: {e}")
 
     def copy_command(self):
         """Copy the selected snippet's command to clipboard."""
