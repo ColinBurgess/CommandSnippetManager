@@ -4,6 +4,7 @@ Test configuration and fixtures for the Command Snippet Management Application.
 
 import os
 import tempfile
+import shutil
 import pytest
 from db.database import Database
 from core.snippet_manager import SnippetManager
@@ -16,6 +17,11 @@ def temp_db_path():
     yield path
     os.close(fd)
     os.unlink(path)
+
+    # Clean up any snapshot directories created during the test
+    backups_dir = os.path.join(os.path.dirname(os.path.dirname(path)), 'backups')
+    if os.path.exists(backups_dir):
+        shutil.rmtree(backups_dir)
 
 
 @pytest.fixture

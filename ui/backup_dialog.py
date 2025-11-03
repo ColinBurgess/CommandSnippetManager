@@ -5,7 +5,8 @@ Backup and restore dialog for the Command Snippet Management Application.
 import os
 from datetime import datetime
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
-                            QLabel, QFileDialog, QMessageBox, QCheckBox, QTabWidget, QWidget)
+                            QLabel, QFileDialog, QMessageBox, QCheckBox, QTabWidget, QWidget,
+                            QListWidget, QListWidgetItem, QScrollArea)
 from PyQt6.QtCore import Qt
 from utils.backup import export_snippets_to_json, import_snippets_from_json
 from utils.logger import get_logger
@@ -114,6 +115,48 @@ class BackupDialog(QDialog):
         json_layout.addStretch()
 
         tabs.addTab(json_tab, "JSON Export/Import")
+
+        # Tab 3: Change Snapshots
+        snapshots_tab = QWidget()
+        snapshots_layout = QVBoxLayout(snapshots_tab)
+
+        snapshots_label = QLabel("Change Snapshots")
+        snapshots_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        snapshots_layout.addWidget(snapshots_label)
+
+        snapshots_info = QLabel(
+            "Automatic before/after snapshots are created when you add, update, or delete snippets.\n"
+            "Select a snapshot below to view details or restore from a previous state."
+        )
+        snapshots_info.setWordWrap(True)
+        snapshots_info.setStyleSheet("color: #999; font-size: 11px; margin: 10px 0;")
+        snapshots_layout.addWidget(snapshots_info)
+
+        # Snapshots list
+        self.snapshots_list = QListWidget()
+        self.snapshots_list.itemSelectionChanged.connect(self.on_snapshot_selected)
+        snapshots_layout.addWidget(self.snapshots_list)
+
+        # Snapshot details
+        self.snapshot_details = QLabel("Select a snapshot to view details")
+        self.snapshot_details.setWordWrap(True)
+        self.snapshot_details.setStyleSheet("color: #666; font-size: 10px; padding: 10px; background-color: #f5f5f5;")
+        snapshots_layout.addWidget(self.snapshot_details)
+
+        # Snapshot action buttons
+        snapshot_buttons_layout = QHBoxLayout()
+
+        restore_snapshot_button = QPushButton("📥 Restore from This Snapshot")
+        restore_snapshot_button.clicked.connect(self.restore_from_snapshot)
+        snapshot_buttons_layout.addWidget(restore_snapshot_button)
+
+        refresh_snapshots_button = QPushButton("🔄 Refresh List")
+        refresh_snapshots_button.clicked.connect(self.load_snapshots)
+        snapshot_buttons_layout.addWidget(refresh_snapshots_button)
+
+        snapshots_layout.addLayout(snapshot_buttons_layout)
+
+        tabs.addTab(snapshots_tab, "Change Snapshots")
 
         layout.addWidget(tabs)
 
@@ -333,3 +376,148 @@ class BackupDialog(QDialog):
                 "Import Failed",
                 f"Failed to import snippets:\n{str(e)}"
             )
+
+    def load_snapshots(self):
+        """Load the list of available snapshots."""
+        try:
+            if not self.snippet_manager:
+                QMessageBox.warning(self, "Error", "Snippet manager not available")
+                return
+
+            self.snapshots_list.clear()
+            snapshots = self.snippet_manager.list_recent_snapshots(limit=20)
+
+            if not snapshots:
+                item = QListWidgetItem("No snapshots available yet")
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+                self.snapshots_list.addItem(item)
+                return
+
+            for snapshot in snapshots:
+                operation = snapshot.get('operation', 'unknown').upper()
+                snippet_name = snapshot.get('snippet_name', 'unknown')
+                status = snapshot.get('status', 'unknown')
+                timestamp = snapshot.get('before_timestamp', '').split('T')[0]  # Extract date
+
+                display_text = f"[{operation}] {snippet_name} - {timestamp}"
+                item = QListWidgetItem(display_text)
+                item.setData(Qt.ItemDataRole.UserRole, snapshot)
+                self.snapshots_list.addItem(item)
+
+            logger.info("Loaded %d snapshots", len(snapshots))
+
+        except Exception as e:
+            logger.error("Failed to load snapshots: %s", str(e))
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to load snapshots:\n{str(e)}"
+            )
+
+    def on_snapshot_selected(self):
+        """Handle snapshot selection."""
+        try:
+            current_item = self.snapshots_list.currentItem()
+            if not current_item:
+                self.snapshot_details.setText("Select a snapshot to view details")
+                return
+
+            snapshot = current_item.data(Qt.ItemDataRole.UserRole)
+            if not snapshot:
+                return
+
+            # Format snapshot details
+            operation = snapshot.get('operation', 'unknown').upper()
+            snippet_name = snapshot.get('snippet_name', 'unknown')
+            before_time = snapshot.get('before_timestamp', 'unknown')
+            after_time = snapshot.get('after_timestamp', 'unknown')
+            status = snapshot.get('status', 'unknown')
+            before_size = snapshot.get('before_size_mb', 0)
+            after_size = snapshot.get('after_size_mb', 0)
+
+            details = (
+                f"<b>Snapshot Details:</b><br>"
+                f"<b>Operation:</b> {operation}<br>"
+                f"<b>Snippet:</b> {snippet_name}<br>"
+                f"<b>Status:</b> {status.upper()}<br>"
+                f"<b>Before Time:</b> {before_time}<br>"
+                f"<b>After Time:</b> {after_time}<br>"
+                f"<b>Before Size:</b> {before_size:.2f} MB<br>"
+                f"<b>After Size:</b> {after_size:.2f} MB"
+            )
+
+            self.snapshot_details.setText(details)
+
+        except Exception as e:
+            logger.error("Error displaying snapshot details: %s", str(e))
+            self.snapshot_details.setText("Error loading snapshot details")
+
+    def restore_from_snapshot(self):
+        """Restore database from selected snapshot."""
+        try:
+            current_item = self.snapshots_list.currentItem()
+            if not current_item:
+                QMessageBox.warning(self, "Error", "Please select a snapshot to restore from")
+                return
+
+            snapshot = current_item.data(Qt.ItemDataRole.UserRole)
+            if not snapshot:
+                return
+
+            snapshot_id = snapshot.get('snapshot_id', '')
+            operation = snapshot.get('operation', 'unknown')
+            snippet_name = snapshot.get('snippet_name', 'unknown')
+
+            # Confirm restore
+            reply = QMessageBox.question(
+                self,
+                "Confirm Restore from Snapshot",
+                f"This will restore your database from this snapshot:\n\n"
+                f"Operation: {operation.upper()}\n"
+                f"Snippet: {snippet_name}\n"
+                f"Time: {snapshot.get('before_timestamp', 'unknown')}\n\n"
+                f"Your current database will be backed up before restore.\n"
+                f"Continue?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.No:
+                return
+
+            # Restore from BEFORE snapshot
+            if not self.snippet_manager:
+                QMessageBox.warning(self, "Error", "Snippet manager not available")
+                return
+
+            success = self.snippet_manager.restore_from_snapshot(snapshot_id, use_before=True)
+
+            if success:
+                QMessageBox.information(
+                    self,
+                    "Restore Successful",
+                    "Database successfully restored from snapshot.\n\n"
+                    "The window will now refresh to show the restored data."
+                )
+                logger.info("Database restored from snapshot %s", snapshot_id)
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Restore Failed",
+                    "Failed to restore from snapshot"
+                )
+
+        except Exception as e:
+            logger.error("Failed to restore from snapshot: %s", str(e))
+            QMessageBox.critical(
+                self,
+                "Restore Failed",
+                f"Failed to restore from snapshot:\n{str(e)}"
+            )
+
+    def showEvent(self, event):
+        """Load snapshots when the dialog is shown."""
+        super().showEvent(event)
+        # Load snapshots if we have a snippet manager
+        if self.snippet_manager:
+            self.load_snapshots()

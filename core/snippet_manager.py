@@ -2,10 +2,15 @@
 Business logic layer for managing command snippets.
 """
 
-from typing import List, Optional
+import os
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from db.database import Database
 from db.models import Snippet
+from utils.backup import backup_database, restore_database, cleanup_old_backups, list_backups
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class SnippetManager:
@@ -57,7 +62,20 @@ class SnippetManager:
         )
 
         try:
+            # Create BEFORE snapshot
+            snapshot_info = self.create_snapshot_before('add', name.strip())
+            snapshot_id = snapshot_info.get('snapshot_id', '')
+
+            # Add the snippet
             snippet_id = self.db.insert_snippet(snippet)
+
+            # Create AFTER snapshot
+            if snapshot_id:
+                self.create_snapshot_after(snapshot_id)
+
+            # Cleanup old snapshots
+            self.cleanup_old_snapshots(keep_count=5)
+
             return snippet_id
         except Exception as e:
             raise Exception(f"Failed to add snippet: {e}")
@@ -136,7 +154,21 @@ class SnippetManager:
         )
 
         try:
-            return self.db.update_snippet(updated_snippet)
+            # Create BEFORE snapshot
+            snapshot_info = self.create_snapshot_before('update', name.strip())
+            snapshot_id = snapshot_info.get('snapshot_id', '')
+
+            # Update the snippet
+            result = self.db.update_snippet(updated_snippet)
+
+            # Create AFTER snapshot
+            if snapshot_id:
+                self.create_snapshot_after(snapshot_id)
+
+            # Cleanup old snapshots
+            self.cleanup_old_snapshots(keep_count=5)
+
+            return result
         except Exception as e:
             raise Exception(f"Failed to update snippet: {e}")
 
@@ -154,7 +186,25 @@ class SnippetManager:
             Exception: If deletion fails
         """
         try:
-            return self.db.delete_snippet(snippet_id)
+            # Get snippet name for snapshot
+            snippet = self.db.get_snippet_by_id(snippet_id)
+            snippet_name = snippet.name if snippet else f"snippet_{snippet_id}"
+
+            # Create BEFORE snapshot
+            snapshot_info = self.create_snapshot_before('delete', snippet_name)
+            snapshot_id = snapshot_info.get('snapshot_id', '')
+
+            # Delete the snippet
+            result = self.db.delete_snippet(snippet_id)
+
+            # Create AFTER snapshot
+            if snapshot_id:
+                self.create_snapshot_after(snapshot_id)
+
+            # Cleanup old snapshots
+            self.cleanup_old_snapshots(keep_count=5)
+
+            return result
         except Exception as e:
             raise Exception(f"Failed to delete snippet: {e}")
 
@@ -219,3 +269,195 @@ class SnippetManager:
             return sorted(list(all_tags))
         except Exception as e:
             raise Exception(f"Failed to get tags list: {e}")
+
+    def create_backup(self, backup_dir: str = None) -> str:
+        """
+        Create a backup of the database.
+
+        Args:
+            backup_dir: Directory to store backup (default: data/ directory)
+
+        Returns:
+            Path to the created backup file
+
+        Raises:
+            Exception: If backup fails
+        """
+        try:
+            db_path = self.db.db_path
+            backup_path = backup_database(db_path, backup_dir)
+            logger.info("Backup created: %s", backup_path)
+            return backup_path
+        except Exception as e:
+            logger.error("Failed to create backup: %s", str(e))
+            raise
+
+    def restore_from_backup(self, backup_path: str, keep_backup: bool = True) -> bool:
+        """
+        Restore database from a backup file.
+
+        Args:
+            backup_path: Path to the backup file
+            keep_backup: If True, keep the backup file after restore
+
+        Returns:
+            True if restore successful
+
+        Raises:
+            Exception: If restore fails
+        """
+        try:
+            db_path = self.db.db_path
+            success = restore_database(backup_path, db_path, keep_backup)
+            logger.info("Database restored from backup: %s", backup_path)
+            return success
+        except Exception as e:
+            logger.error("Failed to restore from backup: %s", str(e))
+            raise
+
+    def cleanup_old_backups(self, backup_dir: str = None, keep_count: int = 5) -> int:
+        """
+        Clean up old backup files, keeping only the most recent ones.
+
+        Args:
+            backup_dir: Directory containing backup files (default: data/ directory)
+            keep_count: Number of most recent backups to keep
+
+        Returns:
+            Number of backups deleted
+
+        Raises:
+            Exception: If cleanup fails
+        """
+        try:
+            if backup_dir is None:
+                db_dir = self.db.db_path
+                backup_dir = os.path.dirname(db_dir) or 'data'
+
+            deleted_count = cleanup_old_backups(backup_dir, keep_count)
+            logger.info("Cleanup completed: %d backups deleted", deleted_count)
+            return deleted_count
+        except Exception as e:
+            logger.error("Failed to cleanup old backups: %s", str(e))
+            raise
+
+    def list_available_backups(self, backup_dir: str = None) -> List[Dict[str, Any]]:
+        """
+        List all available database backups with metadata.
+
+        Args:
+            backup_dir: Directory containing backup files (default: data/ directory)
+
+        Returns:
+            List of dictionaries with backup info (path, name, size, created_time)
+        """
+        try:
+            if backup_dir is None:
+                db_dir = self.db.db_path
+                backup_dir = os.path.dirname(db_dir) or 'data'
+
+            backups = list_backups(backup_dir)
+            return backups
+        except Exception as e:
+            logger.error("Failed to list backups: %s", str(e))
+            return []
+
+    # ========================================
+    # AUTO-SNAPSHOT METHODS
+    # ========================================
+
+    def create_snapshot_before(self, operation: str, snippet_name: str) -> Dict[str, str]:
+        """
+        Create a BEFORE snapshot before an operation on a snippet.
+
+        Args:
+            operation: Operation type ('add', 'update', 'delete')
+            snippet_name: Name of the snippet being modified
+
+        Returns:
+            Dictionary with snapshot info (backup_path, snapshot_id, snapshot_dir)
+        """
+        try:
+            from utils.backup import create_snapshot_before
+            result = create_snapshot_before(self.db.db_path, operation, snippet_name)
+            return result
+        except Exception as e:
+            logger.error("Failed to create BEFORE snapshot: %s", str(e))
+            return {}
+
+    def create_snapshot_after(self, snapshot_id: str) -> Dict[str, str]:
+        """
+        Create an AFTER snapshot after an operation completes.
+
+        Args:
+            snapshot_id: Snapshot ID from create_snapshot_before()
+
+        Returns:
+            Dictionary with snapshot info (backup_path, snapshot_dir)
+        """
+        try:
+            from utils.backup import create_snapshot_after
+            result = create_snapshot_after(self.db.db_path, snapshot_id)
+            return result
+        except Exception as e:
+            logger.error("Failed to create AFTER snapshot: %s", str(e))
+            return {}
+
+    def list_recent_snapshots(self, limit: int = 10) -> List[Dict]:
+        """
+        List recent auto-snapshots with their metadata.
+
+        Args:
+            limit: Maximum number of snapshots to return
+
+        Returns:
+            List of dictionaries with snapshot metadata
+        """
+        try:
+            from utils.backup import list_snapshots
+            snapshots = list_snapshots(self.db.db_path, limit)
+            return snapshots
+        except Exception as e:
+            logger.error("Failed to list snapshots: %s", str(e))
+            return []
+
+    def cleanup_old_snapshots(self, keep_count: int = 5) -> int:
+        """
+        Remove old auto-snapshots, keeping only the most recent N.
+
+        Args:
+            keep_count: Number of recent snapshots to keep
+
+        Returns:
+            Number of snapshots deleted
+        """
+        try:
+            from utils.backup import cleanup_old_snapshots
+            deleted_count = cleanup_old_snapshots(self.db.db_path, keep_count)
+            logger.info("Snapshot cleanup completed: %d old snapshots deleted", deleted_count)
+            return deleted_count
+        except Exception as e:
+            logger.error("Failed to cleanup old snapshots: %s", str(e))
+            return 0
+
+    def restore_from_snapshot(self, snapshot_id: str, use_before: bool = True) -> bool:
+        """
+        Restore the database from a specific snapshot.
+
+        Args:
+            snapshot_id: Snapshot ID to restore from
+            use_before: If True, restore from 'before' snapshot; if False, restore from 'after'
+
+        Returns:
+            True if restore successful, False otherwise
+        """
+        try:
+            from utils.backup import restore_from_snapshot
+            result = restore_from_snapshot(self.db.db_path, snapshot_id, use_before)
+            if result:
+                logger.info("Database restored from snapshot %s", snapshot_id)
+            return result
+        except Exception as e:
+            logger.error("Failed to restore from snapshot: %s", str(e))
+            return False
+

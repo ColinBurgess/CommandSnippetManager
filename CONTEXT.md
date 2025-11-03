@@ -235,24 +235,90 @@ deleted_count = snippet_manager.cleanup_old_backups(keep_count=5)  # Keeps 5 mos
 - **Import**: Load snippets from JSON; option to replace existing or merge.
 - **Format**: Portable across versions; includes id, name, description, command_text, tags, timestamps.
 
-### Tests for Backup
-- **File**: `tests/test_backup.py` (9 tests, all passing)
-- **Coverage**:
-  - Database backup creation with timestamps
-  - Restore from backup with safety backups
-  - Cleanup old backups (keep N most recent)
-  - List backups with metadata
-  - Error handling (missing files, permissions)
+## 8. Backup & Restore Features
 
-## 8. Testing
+### Manual Database Backups
+- **Function**: `snippet_manager.create_backup()` → creates timestamped backup in `data/backups/manual/`
+- **Restore**: `snippet_manager.restore_from_backup(backup_path, keep_backup=True)` → includes safety backup
+- **Cleanup**: `snippet_manager.cleanup_old_backups(keep_count=5)` → keeps N most recent backups
+- **List**: `snippet_manager.list_available_backups()` → returns list of dicts with metadata
+
+### Auto-Snapshot System (NEW in v1.5.0)
+Automatic before/after snapshots are created on every snippet operation:
+
+- **Trigger Points**: Called automatically in `SnippetManager.add_snippet()`, `update_snippet()`, `delete_snippet()`
+- **Snapshot Structure**:
+  ```
+  data/backups/auto/TIMESTAMP/
+  ├── before.db          # Database before operation
+  ├── after.db           # Database after operation
+  └── metadata.json      # Operation details (type, snippet name, timestamps, status)
+  ```
+- **Functions**:
+  ```python
+  # Create BEFORE snapshot before operation
+  snapshot_info = snippet_manager.create_snapshot_before('add', 'Snippet Name')
+  snapshot_id = snapshot_info['snapshot_id']
+  
+  # Perform operation...
+  
+  # Create AFTER snapshot after operation completes
+  snippet_manager.create_snapshot_after(snapshot_id)
+  
+  # List recent snapshots (default: 10 most recent)
+  snapshots = snippet_manager.list_recent_snapshots(limit=10)
+  
+  # Cleanup old snapshots (keeps 5 most recent by default)
+  deleted_count = snippet_manager.cleanup_old_snapshots(keep_count=5)
+  
+  # Restore from snapshot (use_before=True = restore from BEFORE snapshot)
+  success = snippet_manager.restore_from_snapshot(snapshot_id, use_before=True)
+  ```
+
+- **Metadata JSON Example**:
+  ```json
+  {
+    "snapshot_id": "20251103_093456_123456",
+    "operation": "update",
+    "snippet_name": "Test Snippet",
+    "before_timestamp": "2025-11-03T09:34:56.123456",
+    "after_timestamp": "2025-11-03T09:34:56.654321",
+    "status": "completed"
+  }
+  ```
+
+### Backup Dialog (Enhanced)
+- **Tabs**:
+  1. **Database Backup**: Create, restore, or list manual database backups
+  2. **JSON Export/Import**: Export/import snippets as portable JSON files
+  3. **Change Snapshots** (NEW): View and restore from recent auto-snapshots
+- **Accessible via**: `💾 Backup` button in main window toolbar
+
+### Change Snapshots Tab (NEW)
+- **Features**:
+  - Displays last 20 auto-snapshots with operation, snippet name, and date
+  - Shows details: operation type, snippet name, timestamps, file sizes
+  - "Restore from This Snapshot" button to restore to state before operation
+  - "Refresh List" button to reload snapshots
+- **Auto-load**: Snapshots list loads automatically when dialog is shown
+
+### Tests for Backup & Snapshots
+- **File**: `tests/test_backup.py` (16 tests, all passing)
+- **Coverage**:
+  - Manual backups: creation with timestamps, restore with safety backup, cleanup, list
+  - Auto-snapshots: create before/after, list, cleanup, restore
+  - Metadata: verify metadata JSON storage and updates
+  - Error handling: missing files, permissions, invalid operations
+
+## 9. Testing
 
 ### Current Coverage
-- **Unit Tests**: 41 passing (pytest -q)
+- **Unit Tests**: 48 passing (pytest -q)
 - **Test Suites**:
   - `test_database.py` — CRUD operations, search, tags, timestamps (14 tests)
   - `test_models.py` — Snippet validation, dict conversion, tag parsing (10 tests)
   - `test_snippet_manager.py` — Manager logic, validation, usage recording (8 tests)
-  - `test_backup.py` — Database backup/restore, cleanup, list, error handling (9 tests)
+  - `test_backup.py` — Database backup/restore, auto-snapshots, cleanup, list, error handling (16 tests)
 
 ### Test Infrastructure
 - **Fixtures** (conftest.py):

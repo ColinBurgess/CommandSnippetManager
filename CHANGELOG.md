@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## v1.5.0 - 2025-11-03
+- feat(snapshots): add automatic before/after database snapshots for all operations
+- Intelligent snapshot system: automatic snapshots created on add/update/delete snippet operations
+- SnippetManager methods: create_snapshot_before(), create_snapshot_after(), list_recent_snapshots(), cleanup_old_snapshots(), restore_from_snapshot()
+- Enhanced BackupDialog with third tab: "Change Snapshots" for viewing and restoring from recent changes
+- Snapshot metadata storage with JSON files tracking operation type, affected snippet, and timestamps
+- Auto-cleanup of old snapshots (keeps 5 most recent, configurable)
+- Snapshot directory structure: data/backups/auto/TIMESTAMP/ with before.db, after.db, and metadata.json
+- Added 7 new comprehensive tests for snapshot functionality (total test count: 48)
+
 ## v1.4.0 - 2025-11-03
 - 3257b9a - feat(ui): add Backup button and enhance BackupDialog with DB backup/restore tabs
 - feat(backup): add database backup/restore with timestamp and cleanup; 9 new tests
