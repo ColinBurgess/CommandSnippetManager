@@ -200,15 +200,12 @@ class MainWindow(QMainWindow):
         # Fix tags column width so badges cannot grow unbounded
         self.table.setColumnWidth(3, 180)
 
-        # Fallback default row height to avoid visual jitter from embedded widgets
-        try:
-            self.table.verticalHeader().setDefaultSectionSize(36)
-        except Exception:
-            pass
-
-        # Enable word wrap for better text display
+        # Enable word wrap for better text display BEFORE setting row heights
         self.table.setWordWrap(True)
         self.table.setTextElideMode(Qt.TextElideMode.ElideNone)  # Don't elide text
+        
+        # Set row height mode to allow variable heights for wrapped text
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
         # Add table to layout
         left_layout.addWidget(self.table)
@@ -590,12 +587,9 @@ class MainWindow(QMainWindow):
                 self.show_status_message(f"Loaded {count} snippet(s)")
 
             # Adjust row heights to fit content
-            # Resize rows then enforce a uniform minimum to avoid mixed heights
+            # ResizeToContents mode will automatically size rows to their content
+            self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
             self.table.resizeRowsToContents()
-            try:
-                self.table.verticalHeader().setDefaultSectionSize(36)
-            except Exception:
-                pass
 
             # If card view is active, update it as well
             try:
