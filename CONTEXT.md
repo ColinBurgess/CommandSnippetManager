@@ -1,10 +1,10 @@
 # Project Context for LLM
 
 ## 1. Project Summary
-**Name**: Command Snippet Manager (CmdSnips)  
-**Purpose**: Desktop GUI application to store, search, copy and execute command snippets with rich tagging and search capabilities.  
-**Stack**: Python 3.13, PyQt6, SQLite  
-**Latest Version**: 1.3.2 (see VERSION file)  
+**Name**: Command Snippet Manager (CmdSnips)
+**Purpose**: Desktop GUI application to store, search, copy and execute command snippets with rich tagging and search capabilities.
+**Stack**: Python 3.13, PyQt6, SQLite
+**Latest Version**: 1.3.2 (see VERSION file)
 **Repository**: https://github.com/ColinBurgess/CommandSnippetManager
 
 ## 2. Architecture Overview
@@ -31,7 +31,7 @@
 
 **1. Search Flow**
 ```
-User types in search_edit 
+User types in search_edit
   → filter_snippets() normalizes input ('*' → '%')
   → database.search_snippets(term) uses LIKE queries
   → updates table/card view with results
@@ -40,7 +40,7 @@ User types in search_edit
 
 **2. Add/Edit Flow**
 ```
-User clicks New/Edit 
+User clicks New/Edit
   → SnippetDialog opens with 4 input fields (name, description, command_text, tags)
   → SnippetDialog validates on save
   → SnippetManager.add_snippet() or update_snippet() calls database
@@ -125,7 +125,7 @@ class Snippet:
     tags: str = ""                     # Comma-separated tags (e.g., "python, script")
     last_used: datetime                # Timestamp of last execution
     created_at: datetime               # Creation timestamp
-    
+
     # Methods:
     # - to_dict() / from_dict(): serialize/deserialize
     # - get_tags_list(): parse tags string into list, trimmed
@@ -174,6 +174,13 @@ All 4 fields have consistent focus styling (inline QSS + drop-shadow).
 
 ## 7. Recent Key Changes (v1.3.0+)
 
+### v1.4.0 (New)
+- Database backup/restore with timestamped files and safety backups.
+- Enhanced BackupDialog with tabs: Database Backup and JSON Export/Import.
+- Added `💾 Backup` button to main toolbar.
+- 9 new tests for backup functionality (all passing).
+- SnippetManager methods: create_backup(), restore_from_backup(), cleanup_old_backups(), list_available_backups().
+
 ### v1.3.2
 - Selection visibility in QLineEdit/QTextEdit with objectName-based QSS rules.
 - Wildcard mapping: user input `*` → SQL `%` in search.
@@ -193,14 +200,59 @@ All 4 fields have consistent focus styling (inline QSS + drop-shadow).
 - Focus visuals: inline QSS + drop-shadow effect on dialog fields.
 - Consistent theme rules for selection/hover across widgets.
 
+## 8. Backup & Restore
+
+### Database Backup (New in v1.4.0)
+- **Create Backup**: Button in UI toolbar (`💾 Backup`) creates timestamped copy of SQLite database.
+- **Location**: Backups stored in `data/` directory with naming pattern `snippets_backup_YYYYMMDD_HHMMSS_MMMMMM.db`.
+- **Restore Backup**: Dialog allows selecting any backup file and restoring (creates safety backup of current DB first).
+- **List Backups**: View all available backups with size, creation time metadata.
+- **Auto-cleanup**: Optional cleanup to keep only N most recent backups (default: 5).
+
+### Backup Methods in SnippetManager
+```python
+# Create backup
+backup_path = snippet_manager.create_backup()  # Returns path to created backup
+
+# Restore from backup
+snippet_manager.restore_from_backup(backup_path, keep_backup=True)  # Safety backup created automatically
+
+# List backups
+backups = snippet_manager.list_available_backups()  # Returns list of dicts with metadata
+
+# Cleanup old backups
+deleted_count = snippet_manager.cleanup_old_backups(keep_count=5)  # Keeps 5 most recent
+```
+
+### Backup Dialog (Enhanced)
+- **Tabs**:
+  1. **Database Backup**: Create, restore, or list database backups
+  2. **JSON Export/Import**: Export/import snippets as portable JSON files
+- **Accessible via**: `💾 Backup` button in main window toolbar
+
+### JSON Export/Import
+- **Export**: Save all snippets to JSON file with metadata (version, export timestamp).
+- **Import**: Load snippets from JSON; option to replace existing or merge.
+- **Format**: Portable across versions; includes id, name, description, command_text, tags, timestamps.
+
+### Tests for Backup
+- **File**: `tests/test_backup.py` (9 tests, all passing)
+- **Coverage**:
+  - Database backup creation with timestamps
+  - Restore from backup with safety backups
+  - Cleanup old backups (keep N most recent)
+  - List backups with metadata
+  - Error handling (missing files, permissions)
+
 ## 8. Testing
 
 ### Current Coverage
-- **Unit Tests**: 32 passing (pytest -q)
+- **Unit Tests**: 41 passing (pytest -q)
 - **Test Suites**:
   - `test_database.py` — CRUD operations, search, tags, timestamps (14 tests)
   - `test_models.py` — Snippet validation, dict conversion, tag parsing (10 tests)
   - `test_snippet_manager.py` — Manager logic, validation, usage recording (8 tests)
+  - `test_backup.py` — Database backup/restore, cleanup, list, error handling (9 tests)
 
 ### Test Infrastructure
 - **Fixtures** (conftest.py):
@@ -328,11 +380,11 @@ pip install -r requirements.txt     # Install core deps
 
 ## 14. Contact & Ownership
 
-**Maintainer**: Colin Moreno Burgess  
-**Repository**: https://github.com/ColinBurgess/CommandSnippetManager  
+**Maintainer**: Colin Moreno Burgess
+**Repository**: https://github.com/ColinBurgess/CommandSnippetManager
 **Issues/PRs**: See GitHub issue tracker for bugs and feature requests.
 
 ---
 
-**Last Updated**: November 3, 2025 (v1.3.2)  
+**Last Updated**: November 3, 2025 (v1.3.2)
 **For LLM Context Initialization**: Copy the entire contents of this file into the initial chat/context to avoid rescanning the repository.
