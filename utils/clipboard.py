@@ -3,7 +3,7 @@ Clipboard and terminal interaction utilities.
 """
 
 import subprocess
-import os
+from typing import Tuple
 from PyQt6.QtWidgets import QApplication
 
 def copy_to_clipboard(text: str) -> None:
@@ -16,7 +16,7 @@ def copy_to_clipboard(text: str) -> None:
     clipboard = QApplication.clipboard()
     clipboard.setText(text)
 
-def execute_in_terminal_macos(command: str) -> None:
+def execute_in_terminal_macos(command: str) -> Tuple[bool, str, str]:
     """
     Execute a command in a new Terminal.app window on macOS.
 
@@ -34,8 +34,16 @@ def execute_in_terminal_macos(command: str) -> None:
     end tell
     '''
 
-    # Execute the AppleScript
+    # Return a tuple so callers can handle success/failure consistently.
     try:
-        subprocess.run(['osascript', '-e', apple_script], check=True)
+        completed = subprocess.run(
+            ['osascript', '-e', apple_script],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        return True, completed.stdout or "", completed.stderr or ""
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Failed to execute command in Terminal: {e}")
+        return False, e.stdout or "", e.stderr or str(e)
+    except Exception as e:
+        return False, "", str(e)

@@ -6,10 +6,10 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
     QTableWidgetItem, QLineEdit, QPushButton, QMessageBox, QStatusBar,
     QHeaderView, QAbstractItemView, QSplitter, QTextEdit, QLabel,
-    QFrame, QToolBar, QSizePolicy, QApplication, QListWidget, QListWidgetItem
+    QToolBar, QApplication, QListWidget, QListWidgetItem
 )
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont, QAction, QIcon, QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QAction, QColor
 from datetime import datetime
 from typing import Optional
 import re
@@ -19,12 +19,8 @@ from core.snippet_manager import SnippetManager
 from ui.modern_dark_theme import ModernDarkTheme
 from ui.snippet_dialog import SnippetDialog
 from ui.backup_dialog import BackupDialog
-from ui.modern_dark_theme import ModernDarkTheme
 from ui.modern_widgets import TagBadgeWidget, ModernFrame, ModernSeparator, SnippetCard
-from utils import copy_to_clipboard, execute_in_terminal_macos
-from db.models import Snippet
-
-
+from utils.clipboard import copy_to_clipboard, execute_in_terminal_macos
 class MainWindow(QMainWindow):
     """
     Main application window containing the snippet list and controls.
@@ -76,25 +72,18 @@ class MainWindow(QMainWindow):
     def _setup_ui(self):
         """Set up the user interface."""
         # Window properties
-        self.setWindowTitle("Command Snippet Manager")
+        self.setWindowTitle("CmdSnips // Tactical Console")
         self.setMinimumSize(1000, 600)
         self.resize(1200, 800)
 
         # The application provides toolbar/buttons for all actions.
         # Do not create the in-window menu bar to keep the UI minimal.
         # (Keep _create_menu_bar available for future use.)
-        try:
-            mb = self.menuBar()
-            try:
-                mb.setNativeMenuBar(False)
-            except Exception:
-                pass
-            mb.setVisible(False)
-        except Exception:
-            pass
+        self._hide_menu_bar()
 
         # Central widget
         central_widget = QWidget()
+        central_widget.setObjectName('hud_panel')
         self.setCentralWidget(central_widget)
 
         # Main layout with optimized spacing
@@ -102,24 +91,11 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(8)  # Reduced from 16
         main_layout.setContentsMargins(12, 4, 12, 4)  # Reduced margins
 
-    # Toolbar is optional; actions are available via the main
-    # action row (buttons) below the preview. Do not create the
-    # in-window toolbar to keep the UI minimal and avoid duplicate
-    # controls above the search box.
-    # (The _create_toolbar method is kept for programmatic use.)
-
-        # Hide the native menu bar (on macOS it appears at the top) because
-        # toolbar actions provide the same functionality. This removes the
-        # 'File' label and frees vertical space.
-        try:
-            mb = self.menuBar()
-            try:
-                mb.setNativeMenuBar(False)
-            except Exception:
-                pass
-            mb.setVisible(False)
-        except Exception:
-            pass
+        # Toolbar is optional; actions are available via the main
+        # action row (buttons) below the preview. Do not create the
+        # in-window toolbar to keep the UI minimal and avoid duplicate
+        # controls above the search box.
+        # (The _create_toolbar method is kept for programmatic use.)
 
         # Search section - compact and streamlined
         search_layout = QHBoxLayout()
@@ -127,10 +103,10 @@ class MainWindow(QMainWindow):
         search_layout.setSpacing(8)
 
         # Small search icon/label
-        search_label = QLabel("🔍")
-        search_label.setFixedSize(24, 24)
+        search_label = QLabel("SCAN")
+        search_label.setFixedSize(48, 24)
         search_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        search_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_secondary']}; font-size: 16px;")
+        search_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['accent_orange']}; font-size: 11px; font-weight: 700;")
 
         # Compact search input
         self.search_edit = QLineEdit()
@@ -203,7 +179,7 @@ class MainWindow(QMainWindow):
         # Enable word wrap for better text display BEFORE setting row heights
         self.table.setWordWrap(True)
         self.table.setTextElideMode(Qt.TextElideMode.ElideNone)  # Don't elide text
-        
+
         # Set row height mode to allow variable heights for wrapped text
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
@@ -223,7 +199,7 @@ class MainWindow(QMainWindow):
 
         # Preview header with icon
         preview_header = QHBoxLayout()
-        preview_label = QLabel("⚡ Command Preview")
+        preview_label = QLabel("COMMAND INTEL")
         preview_label.setFont(QFont("", 14, QFont.Weight.Bold))
         preview_label.setStyleSheet(f"color: {ModernDarkTheme.COLORS['text_primary']};")
         preview_header.addWidget(preview_label)
@@ -239,7 +215,7 @@ class MainWindow(QMainWindow):
         # Give the preview a specific object name so stylesheet rules can target it
         self.command_preview.setObjectName('command_edit')
         self.command_preview.setReadOnly(True)
-        self.command_preview.setFont(QFont("SF Mono, Monaco, Cascadia Code, Roboto Mono", 12))
+        self.command_preview.setFont(ModernDarkTheme.resolve_monospace_font(12))
         self.command_preview.setPlaceholderText("Select a snippet to preview its command...")
         self.command_preview.setMinimumHeight(200)
         # Ensure text selection is enabled even in read-only mode so users
@@ -264,12 +240,12 @@ class MainWindow(QMainWindow):
         button_layout.setSpacing(8)  # Reduced spacing
 
         # Action buttons with modern styles
-        self.new_button = QPushButton("✨ New Snippet")
-        self.edit_button = QPushButton("✏️ Edit")
-        self.delete_button = QPushButton("🗑️ Delete")
-        self.backup_button = QPushButton("💾 Backup")
-        self.copy_button = QPushButton("📋 Copy Command")
-        self.execute_button = QPushButton("▶️ Execute")
+        self.new_button = QPushButton("NEW ENTRY")
+        self.edit_button = QPushButton("EDIT")
+        self.delete_button = QPushButton("DELETE")
+        self.backup_button = QPushButton("BACKUP")
+        self.copy_button = QPushButton("COPY CMD")
+        self.execute_button = QPushButton("EXECUTE")
 
         # Apply button styles
         button_styles = ModernDarkTheme.get_button_styles()
@@ -299,7 +275,7 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(self.execute_button)
 
         # Visible Card View toggle button in the main action row
-        self.card_view_button = QPushButton("🗂️ Card View")
+        self.card_view_button = QPushButton("CARD MODE")
         self.card_view_button.setCheckable(True)
         self.card_view_button.setChecked(False)
         # Use same secondary button style as toolbar for visual parity
@@ -341,6 +317,18 @@ class MainWindow(QMainWindow):
                 font-size: 12px;
             }}
         """)
+
+    def _hide_menu_bar(self):
+        """Hide native menu bar because actions are exposed in the main UI."""
+        try:
+            mb = self.menuBar()
+            try:
+                mb.setNativeMenuBar(False)
+            except Exception:
+                pass
+            mb.setVisible(False)
+        except Exception:
+            pass
 
     def _create_menu_bar(self):
         """Create the application menu bar."""

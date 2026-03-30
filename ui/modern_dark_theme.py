@@ -7,43 +7,44 @@ inspired by contemporary application designs.
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPalette, QColor
+from PyQt6.QtGui import QFontDatabase
 
 
 class ModernDarkTheme:
-    """Modern dark theme configuration and stylesheet."""
+    """Tactical HUD-inspired dark theme configuration and stylesheet."""
 
     # Color Palette
     COLORS = {
-        # Primary colors
-        'background': '#1a1a1a',          # Main background
-        'surface': '#2d2d2d',             # Cards, panels
-        'surface_elevated': '#3a3a3a',    # Hover states
+        # Core surfaces
+        'background': '#050b0b',          # Deep tactical black-green
+        'surface': '#0b1515',             # Panel background
+        'surface_elevated': '#132121',    # Hover/raised panels
 
-        # Text colors
-        'text_primary': '#ffffff',        # Main text
-        'text_secondary': '#b0b0b0',      # Secondary text
-        'text_muted': '#808080',          # Muted text
+        # Typography
+        'text_primary': '#d5f2df',        # Main readable text
+        'text_secondary': '#8fb7a0',      # Secondary labels
+        'text_muted': '#5d7b69',          # Muted metadata
 
-        # Accent colors
-        'accent_blue': '#007acc',         # Primary accent
-        'accent_blue_hover': '#1e88e5',   # Blue hover
-        'accent_green': '#4caf50',        # Success/positive
-        'accent_orange': '#ff9800',       # Warning/info
-        'accent_red': '#f44336',          # Error/delete
-        'accent_purple': '#9c27b0',       # Special
+        # Tactical accents
+        'accent_blue': '#27d5b0',         # HUD cyan-green
+        'accent_blue_hover': '#3deac4',   # Brighter hover
+        'accent_green': '#8fdc6a',        # Success/positive
+        'accent_orange': '#d4a64e',       # Warning/attention
+        'accent_red': '#e05f5f',          # Error/delete
+        'accent_purple': '#5aa0ff',       # Auxiliary accent
 
-        # UI elements
-        'border': '#404040',              # Borders
-        'border_focus': '#007acc',        # Focused borders
-        'selection': '#007acc80',         # Selection background (more visible)
-        'selection_border': '#007acc',    # Selection border
-        'hover': '#007acc1a',             # Hover background
+        # Structural UI tones
+        'border': '#1c3530',              # Panel borders
+        'border_focus': '#27d5b0',        # Focus glow color
+        'selection': '#27d5b04d',         # Selection background
+        'selection_border': '#27d5b0',    # Selection border
+        'hover': '#27d5b022',             # Hover overlay
 
         # Status colors
-        'success': '#4caf50',
-        'warning': '#ff9800',
-        'error': '#f44336',
-        'info': '#2196f3',
+        'success': '#8fdc6a',
+        'warning': '#d4a64e',
+        'error': '#e05f5f',
+        'info': '#27d5b0',
     }
 
     @staticmethod
@@ -54,7 +55,7 @@ class ModernDarkTheme:
         QApplication {{
             background-color: {ModernDarkTheme.COLORS['background']};
             color: {ModernDarkTheme.COLORS['text_primary']};
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', monospace;
             font-size: 13px;
         }}
 
@@ -68,6 +69,16 @@ class ModernDarkTheme:
         QWidget {{
             background-color: {ModernDarkTheme.COLORS['background']};
             color: {ModernDarkTheme.COLORS['text_primary']};
+        }}
+
+        /* HUD surface texture for top-level containers */
+        QWidget#hud_panel {{
+            background: qlineargradient(
+                x1: 0, y1: 0, x2: 1, y2: 1,
+                stop: 0 {ModernDarkTheme.COLORS['surface']},
+                stop: 1 {ModernDarkTheme.COLORS['background']}
+            );
+            border: 1px solid {ModernDarkTheme.COLORS['border']};
         }}
 
         /* Labels */
@@ -113,7 +124,7 @@ class ModernDarkTheme:
             border-radius: 6px;
             padding: 8px;
             color: {ModernDarkTheme.COLORS['text_primary']};
-            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+            font-family: 'Menlo', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Courier New', monospace;
             font-size: 12px;
             selection-background-color: {ModernDarkTheme.COLORS['selection']};
         }}
@@ -153,14 +164,16 @@ class ModernDarkTheme:
             background-color: transparent;
         }}
 
-        /* Selected rows in table use green accents for positive action clarity */
+        /* Selected rows - tactical HUD highlight */
         QTableWidget::item:selected:active {{
-            background-color: {ModernDarkTheme.COLORS['accent_green']};
+            background-color: {ModernDarkTheme.COLORS['selection']};
             color: {ModernDarkTheme.COLORS['text_primary']};
+            border-left: 2px solid {ModernDarkTheme.COLORS['selection_border']};
         }}
         QTableWidget::item:selected:!active {{
-            background-color: #388e3c; /* darker green for inactive */
+            background-color: #1f3a33;
             color: {ModernDarkTheme.COLORS['text_primary']};
+            border-left: 2px solid {ModernDarkTheme.COLORS['selection_border']};
         }}
 
         QTableWidget::item:hover {{
@@ -336,82 +349,90 @@ class ModernDarkTheme:
         return {
             'primary': f"""
                 QPushButton {{
-                    background-color: {ModernDarkTheme.COLORS['accent_blue']};
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
+                    background-color: {ModernDarkTheme.COLORS['surface']};
+                    color: {ModernDarkTheme.COLORS['accent_blue']};
+                    border: 1px solid {ModernDarkTheme.COLORS['accent_blue']};
+                    border-radius: 2px;
                     padding: 8px 16px;
-                    font-weight: 500;
-                    font-size: 13px;
+                    font-weight: 600;
+                    font-size: 12px;
                 }}
                 QPushButton:hover {{
-                    background-color: {ModernDarkTheme.COLORS['accent_blue_hover']};
+                    background-color: {ModernDarkTheme.COLORS['surface_elevated']};
+                    color: {ModernDarkTheme.COLORS['accent_blue_hover']};
+                    border-color: {ModernDarkTheme.COLORS['accent_blue_hover']};
                 }}
                 QPushButton:pressed {{
-                    background-color: #0f5d9e;
+                    background-color: #0d1f1d;
                 }}
                 QPushButton:disabled {{
                     background-color: {ModernDarkTheme.COLORS['border']};
                     color: {ModernDarkTheme.COLORS['text_muted']};
+                    border-color: {ModernDarkTheme.COLORS['border']};
                 }}
             """,
 
             'success': f"""
                 QPushButton {{
-                    background-color: {ModernDarkTheme.COLORS['accent_green']};
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
+                    background-color: {ModernDarkTheme.COLORS['surface']};
+                    color: {ModernDarkTheme.COLORS['accent_green']};
+                    border: 1px solid {ModernDarkTheme.COLORS['accent_green']};
+                    border-radius: 2px;
                     padding: 8px 16px;
-                    font-weight: 500;
-                    font-size: 13px;
+                    font-weight: 600;
+                    font-size: 12px;
                 }}
                 QPushButton:hover {{
-                    background-color: #66bb6a;
+                    background-color: {ModernDarkTheme.COLORS['surface_elevated']};
+                    border-color: #a6ee86;
                 }}
                 QPushButton:pressed {{
-                    background-color: #388e3c;
+                    background-color: #142218;
                 }}
                 QPushButton:disabled {{
                     background-color: {ModernDarkTheme.COLORS['border']};
                     color: {ModernDarkTheme.COLORS['text_muted']};
+                    border-color: {ModernDarkTheme.COLORS['border']};
                 }}
             """,
 
             'danger': f"""
                 QPushButton {{
-                    background-color: {ModernDarkTheme.COLORS['accent_red']};
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
+                    background-color: {ModernDarkTheme.COLORS['surface']};
+                    color: {ModernDarkTheme.COLORS['accent_red']};
+                    border: 1px solid {ModernDarkTheme.COLORS['accent_red']};
+                    border-radius: 2px;
                     padding: 8px 16px;
-                    font-weight: 500;
-                    font-size: 13px;
+                    font-weight: 600;
+                    font-size: 12px;
                 }}
                 QPushButton:hover {{
-                    background-color: #e57373;
+                    background-color: {ModernDarkTheme.COLORS['surface_elevated']};
+                    border-color: #f27d7d;
                 }}
                 QPushButton:pressed {{
-                    background-color: #d32f2f;
+                    background-color: #231515;
                 }}
                 QPushButton:disabled {{
                     background-color: {ModernDarkTheme.COLORS['border']};
                     color: {ModernDarkTheme.COLORS['text_muted']};
+                    border-color: {ModernDarkTheme.COLORS['border']};
                 }}
             """,
 
             'secondary': f"""
                 QPushButton {{
                     background-color: {ModernDarkTheme.COLORS['surface']};
-                    color: {ModernDarkTheme.COLORS['text_primary']};
+                    color: {ModernDarkTheme.COLORS['text_secondary']};
                     border: 1px solid {ModernDarkTheme.COLORS['border']};
-                    border-radius: 6px;
+                    border-radius: 2px;
                     padding: 8px 16px;
-                    font-weight: 500;
-                    font-size: 13px;
+                    font-weight: 600;
+                    font-size: 12px;
                 }}
                 QPushButton:hover {{
                     background-color: {ModernDarkTheme.COLORS['surface_elevated']};
+                    color: {ModernDarkTheme.COLORS['text_primary']};
                     border-color: {ModernDarkTheme.COLORS['accent_blue']};
                 }}
                 QPushButton:pressed {{
@@ -520,23 +541,56 @@ class ModernDarkTheme:
             }}
         """
 
+    # Ordered preference list for monospace code display.
+    MONOSPACE_FONT_CANDIDATES = [
+        'JetBrains Mono',
+        'Fira Code',
+        'Cascadia Code',
+        'Menlo',
+        'Monaco',
+        'Roboto Mono',
+        'Courier New',
+        'Courier',
+    ]
+
+    @staticmethod
+    def resolve_monospace_font(size: int = 12) -> QFont:
+        """
+        Return a QFont set to the first available monospace family.
+
+        Qt's QFont constructor does not accept CSS-style comma-separated
+        fallback lists.  Passing 'SF Mono, Monaco, ...' as a family name
+        causes a Qt warning and a 100+ ms font-alias-population delay.
+        This helper picks the first installed family from the preference
+        list and falls back to the system fixed-pitch font.
+        """
+        available = set(QFontDatabase.families())
+        for family in ModernDarkTheme.MONOSPACE_FONT_CANDIDATES:
+            if family in available:
+                return QFont(family, size)
+        # Hard fallback: system fixed-pitch font
+        font = QFont()
+        font.setFixedPitch(True)
+        font.setPointSize(size)
+        return font
+
     @staticmethod
     def get_tag_colors():
         """Get predefined colors for tag badges."""
         return [
-            ModernDarkTheme.COLORS['accent_blue'],
-            ModernDarkTheme.COLORS['accent_green'],
-            ModernDarkTheme.COLORS['accent_orange'],
-            ModernDarkTheme.COLORS['accent_purple'],
-            ModernDarkTheme.COLORS['info'],
-            '#e91e63',  # Pink
-            '#9c27b0',  # Purple
-            '#673ab7',  # Deep Purple
-            '#3f51b5',  # Indigo
-            '#00bcd4',  # Cyan
-            '#009688',  # Teal
-            '#8bc34a',  # Light Green
-            '#cddc39',  # Lime
-            '#ffc107',  # Amber
-            '#ff5722',  # Deep Orange
+            '#27d5b0',
+            '#8fdc6a',
+            '#d4a64e',
+            '#5aa0ff',
+            '#41c9f4',
+            '#4abf9f',
+            '#b8d66b',
+            '#6bc7a6',
+            '#b4c973',
+            '#89d3ba',
+            '#cfb86f',
+            '#6eaad8',
+            '#70c98f',
+            '#9ac1a2',
+            '#d6be8f',
         ]

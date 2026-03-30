@@ -161,7 +161,7 @@ class SnippetDialog(QDialog):
         self.command_edit.setAutoFillBackground(True)
         self.command_edit.setPlaceholderText("Enter the command to execute...")
         self.command_edit.setMinimumHeight(140)
-        self.command_edit.setFont(QFont("SF Mono, Monaco, Cascadia Code, Roboto Mono", 12))
+        self.command_edit.setFont(ModernDarkTheme.resolve_monospace_font(12))
         self.command_edit.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
         try:
             self.command_edit.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)

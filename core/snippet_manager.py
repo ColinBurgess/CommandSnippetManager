@@ -3,7 +3,7 @@ Business logic layer for managing command snippets.
 """
 
 import os
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Callable, TypeVar
 from datetime import datetime
 from db.database import Database
 from db.models import Snippet
@@ -11,6 +11,8 @@ from utils.backup import backup_database, restore_database, cleanup_old_backups,
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+T = TypeVar('T')
 
 
 class SnippetManager:
@@ -26,6 +28,27 @@ class SnippetManager:
             database: Database instance for data operations
         """
         self.db = database
+
+    def _validate_required_fields(self, name: str, command_text: str) -> None:
+        """Validate required snippet fields."""
+        if not name.strip():
+            raise ValueError("Snippet name cannot be empty")
+
+        if not command_text.strip():
+            raise ValueError("Command text cannot be empty")
+
+    def _run_with_snapshots(self, operation: str, snippet_name: str, action: Callable[[], T]) -> T:
+        """Execute an operation wrapped by before/after snapshots."""
+        snapshot_info = self.create_snapshot_before(operation, snippet_name)
+        snapshot_id = snapshot_info.get('snapshot_id', '')
+
+        result = action()
+
+        if snapshot_id:
+            self.create_snapshot_after(snapshot_id)
+
+        self.cleanup_old_snapshots(keep_count=5)
+        return result
 
     def add_snippet(self, name: str, description: str, command_text: str, tags: str, allow_duplicate_names: bool = True) -> int:
         """
@@ -45,38 +68,23 @@ class SnippetManager:
             ValueError: If snippet name or command is empty, or if name already exists and allow_duplicate_names is False
             Exception: If snippet creation fails
         """
-        if not name.strip():
-            raise ValueError("Snippet name cannot be empty")
+        normalized_name = name.strip()
+        normalized_command = command_text.strip()
 
-        if not command_text.strip():
-            raise ValueError("Command text cannot be empty")
+        self._validate_required_fields(normalized_name, normalized_command)
 
-        if not allow_duplicate_names and self.db.name_exists(name.strip()):
+        if not allow_duplicate_names and self.db.name_exists(normalized_name):
             raise ValueError(f"A snippet with the name '{name}' already exists")
 
         snippet = Snippet(
-            name=name.strip(),
+            name=normalized_name,
             description=description.strip(),
-            command_text=command_text.strip(),
+            command_text=normalized_command,
             tags=tags.strip()
         )
 
         try:
-            # Create BEFORE snapshot
-            snapshot_info = self.create_snapshot_before('add', name.strip())
-            snapshot_id = snapshot_info.get('snapshot_id', '')
-
-            # Add the snippet
-            snippet_id = self.db.insert_snippet(snippet)
-
-            # Create AFTER snapshot
-            if snapshot_id:
-                self.create_snapshot_after(snapshot_id)
-
-            # Cleanup old snapshots
-            self.cleanup_old_snapshots(keep_count=5)
-
-            return snippet_id
+            return self._run_with_snapshots('add', normalized_name, lambda: self.db.insert_snippet(snippet))
         except Exception as e:
             raise Exception(f"Failed to add snippet: {e}")
 
@@ -131,11 +139,9 @@ class SnippetManager:
         Raises:
             Exception: If update fails
         """
-        if not name.strip():
-            raise ValueError("Snippet name cannot be empty")
-
-        if not command_text.strip():
-            raise ValueError("Command text cannot be empty")
+        normalized_name = name.strip()
+        normalized_command = command_text.strip()
+        self._validate_required_fields(normalized_name, normalized_command)
 
         # Get existing snippet to preserve timestamps
         existing_snippet = self.db.get_snippet_by_id(snippet_id)
@@ -145,30 +151,16 @@ class SnippetManager:
         # Create updated snippet object
         updated_snippet = Snippet(
             snippet_id=snippet_id,
-            name=name.strip(),
+            name=normalized_name,
             description=description.strip(),
-            command_text=command_text.strip(),
+            command_text=normalized_command,
             tags=tags.strip(),
             last_used=existing_snippet.last_used,
             created_at=existing_snippet.created_at
         )
 
         try:
-            # Create BEFORE snapshot
-            snapshot_info = self.create_snapshot_before('update', name.strip())
-            snapshot_id = snapshot_info.get('snapshot_id', '')
-
-            # Update the snippet
-            result = self.db.update_snippet(updated_snippet)
-
-            # Create AFTER snapshot
-            if snapshot_id:
-                self.create_snapshot_after(snapshot_id)
-
-            # Cleanup old snapshots
-            self.cleanup_old_snapshots(keep_count=5)
-
-            return result
+            return self._run_with_snapshots('update', normalized_name, lambda: self.db.update_snippet(updated_snippet))
         except Exception as e:
             raise Exception(f"Failed to update snippet: {e}")
 
@@ -190,21 +182,7 @@ class SnippetManager:
             snippet = self.db.get_snippet_by_id(snippet_id)
             snippet_name = snippet.name if snippet else f"snippet_{snippet_id}"
 
-            # Create BEFORE snapshot
-            snapshot_info = self.create_snapshot_before('delete', snippet_name)
-            snapshot_id = snapshot_info.get('snapshot_id', '')
-
-            # Delete the snippet
-            result = self.db.delete_snippet(snippet_id)
-
-            # Create AFTER snapshot
-            if snapshot_id:
-                self.create_snapshot_after(snapshot_id)
-
-            # Cleanup old snapshots
-            self.cleanup_old_snapshots(keep_count=5)
-
-            return result
+            return self._run_with_snapshots('delete', snippet_name, lambda: self.db.delete_snippet(snippet_id))
         except Exception as e:
             raise Exception(f"Failed to delete snippet: {e}")
 

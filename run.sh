@@ -5,17 +5,21 @@
 
 set -e
 
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "❌ Virtual environment not found. Please run setup.sh first."
-    exit 1
-fi
-
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Resolve virtual environment directory (.venv preferred, fallback to venv)
+if [ -d "$SCRIPT_DIR/.venv" ]; then
+    VENV_DIR="$SCRIPT_DIR/.venv"
+elif [ -d "$SCRIPT_DIR/venv" ]; then
+    VENV_DIR="$SCRIPT_DIR/venv"
+else
+    echo "❌ Virtual environment not found (.venv or venv). Please run setup.sh first."
+    exit 1
+fi
+
 # Use the virtual environment python directly
-VENV_PYTHON="$SCRIPT_DIR/venv/bin/python"
+VENV_PYTHON="$VENV_DIR/bin/python"
 
 # Check if the virtual environment python exists
 if [ ! -f "$VENV_PYTHON" ]; then

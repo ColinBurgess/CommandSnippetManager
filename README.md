@@ -49,10 +49,10 @@ If you prefer to install manually:
 
 ```bash
 # Create virtual environment
-python3 -m venv venv
+python3 -m venv .venv
 
 # Activate virtual environment
-source venv/bin/activate
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -69,9 +69,40 @@ pip install -r requirements.txt
 
 **Option 2: Manual execution**
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 python main.py
 ```
+
+**Option 3: Alias + PM2 controller script**
+
+Define this alias in your shell profile (`~/.zshrc`):
+
+```bash
+alias AliLocalsnipp='/Users/colin.moreno-burgess/github/Colin/CmdSnips/cmdsnips_pm2.sh'
+```
+
+Then reload your shell:
+
+```bash
+source ~/.zshrc
+```
+
+Usage:
+
+```bash
+AliLocalsnipp
+AliLocalsnipp start
+AliLocalsnipp stop
+AliLocalsnipp restart
+AliLocalsnipp status
+AliLocalsnipp logs
+AliLocalsnipp delete
+```
+
+Behavior:
+- Running `AliLocalsnipp` without arguments shows help text.
+- Use `AliLocalsnipp start` to start/restart the process in PM2 under the name `CmdSnips`.
+- Use `AliLocalsnipp stop` to stop it cleanly.
 
 ### Main Interface
 
@@ -124,8 +155,8 @@ The application opens with a main window containing:
 ```
 my_snippet_app/
 ├── main.py                 # Application entry point
+├── cmdsnips_pm2.sh         # PM2 controller script for alias-based start/stop
 ├── config.py               # Application configuration
-├── utils.py                # Utility functions
 ├── requirements.txt        # Python dependencies
 ├── setup.sh               # Setup script
 ├── run.sh                 # Run script
@@ -293,7 +324,7 @@ APP_NAME = "My Command Manager"
 **2. Dependency errors:**
 ```bash
 # Reinstall dependencies
-source venv/bin/activate
+source .venv/bin/activate
 pip install --upgrade -r requirements.txt
 ```
 
@@ -342,7 +373,7 @@ The application includes a comprehensive logging system that writes to both cons
 
 #### Running with Debug Output
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 python -u main.py  # Logs will be in logs/snippets_YYYYMMDD.log
 ```
 

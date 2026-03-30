@@ -259,18 +259,18 @@ Automatic before/after snapshots are created on every snippet operation:
   # Create BEFORE snapshot before operation
   snapshot_info = snippet_manager.create_snapshot_before('add', 'Snippet Name')
   snapshot_id = snapshot_info['snapshot_id']
-  
+
   # Perform operation...
-  
+
   # Create AFTER snapshot after operation completes
   snippet_manager.create_snapshot_after(snapshot_id)
-  
+
   # List recent snapshots (default: 10 most recent)
   snapshots = snippet_manager.list_recent_snapshots(limit=10)
-  
+
   # Cleanup old snapshots (keeps 5 most recent by default)
   deleted_count = snippet_manager.cleanup_old_snapshots(keep_count=5)
-  
+
   # Restore from snapshot (use_before=True = restore from BEFORE snapshot)
   success = snippet_manager.restore_from_snapshot(snapshot_id, use_before=True)
   ```

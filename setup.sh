@@ -13,15 +13,22 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-    echo "📦 Creating virtual environment..."
-    python3 -m venv venv
+# Pick environment directory:
+# - Reuse existing venv if present for backward compatibility
+# - Otherwise use .venv as default
+if [ -d "venv" ]; then
+    VENV_DIR="venv"
+elif [ -d ".venv" ]; then
+    VENV_DIR=".venv"
+else
+    VENV_DIR=".venv"
+    echo "📦 Creating virtual environment in $VENV_DIR..."
+    python3 -m venv "$VENV_DIR"
 fi
 
 # Activate virtual environment
 echo "🔄 Activating virtual environment..."
-source venv/bin/activate
+source "$VENV_DIR/bin/activate"
 
 # Upgrade pip
 echo "⬆️  Upgrading pip..."
@@ -34,7 +41,7 @@ pip install -r requirements.txt
 echo "✅ Setup complete!"
 echo ""
 echo "To run the application:"
-echo "1. Activate the virtual environment: source venv/bin/activate"
+echo "1. Activate the virtual environment: source $VENV_DIR/bin/activate"
 echo "2. Run the application: python main.py"
 echo ""
 echo "Or use the run script: ./run.sh"

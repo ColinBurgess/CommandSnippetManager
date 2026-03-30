@@ -298,6 +298,7 @@ def list_backups(backup_dir: str) -> List[Dict[str, Any]]:
 
     except Exception as e:
         logger.error("Failed to list backups: %s", str(e))
+        return []
 
 
 # ========================================

@@ -82,6 +82,24 @@ class Database:
             logger.error("Failed to initialize database schema: %s", str(e))
             raise Exception(f"Failed to initialize database schema: {e}")
 
+    def _parse_datetime(self, value: Optional[str]) -> Optional[datetime]:
+        """Parse ISO datetime strings from SQLite rows."""
+        if not value:
+            return None
+        return datetime.fromisoformat(value)
+
+    def _row_to_snippet(self, row: sqlite3.Row) -> Snippet:
+        """Convert a SQLite row into a Snippet model."""
+        return Snippet(
+            snippet_id=row['id'],
+            name=row['name'],
+            description=row['description'],
+            command_text=row['command_text'],
+            tags=row['tags'],
+            last_used=self._parse_datetime(row['last_used']),
+            created_at=self._parse_datetime(row['created_at'])
+        )
+
     def _execute_query(
         self,
         query: str,
@@ -187,15 +205,7 @@ class Database:
 
             for row in rows:
                 try:
-                    snippet = Snippet(
-                        snippet_id=row['id'],
-                        name=row['name'],
-                        description=row['description'],
-                        command_text=row['command_text'],
-                        tags=row['tags'],
-                        last_used=datetime.fromisoformat(row['last_used']) if row['last_used'] else None,
-                        created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None
-                    )
+                    snippet = self._row_to_snippet(row)
                     snippets.append(snippet)
                 except Exception as row_error:
                     logger.error("Failed to process snippet row: %s. Error: %s", row, str(row_error))
@@ -229,15 +239,7 @@ class Database:
             row = self._execute_query(select_sql, (snippet_id,), fetchone=True)
 
             if row:
-                return Snippet(
-                    snippet_id=row['id'],
-                    name=row['name'],
-                    description=row['description'],
-                    command_text=row['command_text'],
-                    tags=row['tags'],
-                    last_used=datetime.fromisoformat(row['last_used']) if row['last_used'] else None,
-                    created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None
-                )
+                return self._row_to_snippet(row)
 
             return None
 
@@ -348,15 +350,7 @@ class Database:
             snippets = []
 
             for row in rows:
-                snippet = Snippet(
-                    snippet_id=row['id'],
-                    name=row['name'],
-                    description=row['description'],
-                    command_text=row['command_text'],
-                    tags=row['tags'],
-                    last_used=datetime.fromisoformat(row['last_used']) if row['last_used'] else None,
-                    created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None
-                )
+                snippet = self._row_to_snippet(row)
                 snippets.append(snippet)
 
             return snippets
